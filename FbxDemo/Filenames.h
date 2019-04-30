@@ -24,8 +24,8 @@
 #define NAME_SIZE 256
 
 const std::string ASCII_FILE = "Exported_Files/xTestAscii.txt";
-const std::string BINARY_FILE = "Exported_Files/xTestBinary.bin";
-const std::string IN_FBX_FILEPATH = "FBX_Files/boxLight.fbx";
+const std::string BINARY_FILE = "Exported_Files/SimpleTest2.bin"; //Target file.
+const std::string IN_FBX_FILEPATH = "FBX_Files/SimpleTest2.fbx"; //Source file.
 
 // MM: Standard names, in case you mess them up too much
 //const std::string ASCII_FILE = "Exported_Files/xTestAscii.txt";
