@@ -468,7 +468,7 @@ string PrintContent(FbxNode* pNode)
     DisplayTarget(pNode);
     DisplayPivotsAndLimits(pNode);
     DisplayTransformPropagation(pNode);*/
-    pString += PrintGeometricTransform(pNode);
+    //pString += PrintGeometricTransform(pNode);
 
     for(i = 0; i < pNode->GetChildCount(); i++)
     {
