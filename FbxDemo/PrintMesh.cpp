@@ -1,11 +1,5 @@
 #include "PrintMesh.h"
 
-#include "Filenames.h"
-#include "PrintMaterial.h"
-
-#include <iostream>
-#include <fstream>
-using namespace std;
 
 //#define MAT_HEADER_LENGTH 200
 
@@ -37,21 +31,15 @@ using namespace std;
 // MM: The outcommented functions are not used right now, but may be needed at a later point.
 //string PrintControlsPoints(FbxMesh* pMesh);
 string PrintPolygons(FbxMesh* pMesh, string meshName);
+void GetPolygons(FbxMesh* pMesh, Mesh* mesh);
 //string PrintMaterialMapping(FbxMesh* pMesh);
 //void PrintTextureMapping(FbxMesh* pMesh);
 //void PrintTextureNames(FbxProperty &pProperty, FbxString& pConnectionString);
 //void PrintMaterialConnections(FbxMesh* pMesh);
 //void PrintMaterialTextureConnections(FbxSurfaceMaterial* pMaterial, char * header, int pMatId, int l);
 
-struct Vertex {
-	float pos[3];
-	float uv[2];
-	float norm[3];
-	float tan[3];
-	float binorm[3];
-};
-
-string PrintMesh(FbxNode* pNode) {
+string PrintMesh(FbxNode* pNode) 
+{
 	FbxMesh* pMesh = (FbxMesh*)pNode->GetNodeAttribute();
 	string pString;
 
@@ -131,7 +119,7 @@ string PrintPolygons(FbxMesh* pMesh, string meshName)
 	ofstream binFile(BINARY_FILE, ofstream::binary | ofstream::app);
 
 	// --- MM: Getting, formatting and printing mesh name --- 
-	int nameLength = strlen(meshName.c_str());
+	int nameLength = (int)strlen(meshName.c_str());
 	char finalMeshName[NAME_SIZE];
 	for (int i = 0; i < nameLength; i++) {
 		finalMeshName[i] = meshName[i];
@@ -155,6 +143,7 @@ string PrintPolygons(FbxMesh* pMesh, string meshName)
 
 	// --- MM: Allocating memory for the vertices array based on the vertex count ---
 	Vertex *vertices = new Vertex[vtxCount];
+
 
 	// MM: Builds vertices for each polygon, and adds to the vertices array we allocated memory for
 	int vertexId = 0;
@@ -195,9 +184,9 @@ string PrintPolygons(FbxMesh* pMesh, string meshName)
 			{
 				// MM: Prints and adds -vertex positions- to the pString and to the vertices array
 				pString += Print3DVector("v ", lControlPoints[lControlPointIndex]);
-				vertices[vertexId].pos[0] = lControlPoints[lControlPointIndex][0];
-				vertices[vertexId].pos[1] = lControlPoints[lControlPointIndex][1];
-				vertices[vertexId].pos[2] = lControlPoints[lControlPointIndex][2];
+				vertices[vertexId].position[0] = (float)lControlPoints[lControlPointIndex][0];
+				vertices[vertexId].position[1] = (float)lControlPoints[lControlPointIndex][1];
+				vertices[vertexId].position[2] = (float)lControlPoints[lControlPointIndex][2];
 
 			}
 
@@ -266,15 +255,15 @@ string PrintPolygons(FbxMesh* pMesh, string meshName)
 					{
 					case FbxGeometryElement::eDirect:
 						pString += Print2DVector(header, leUV->GetDirectArray().GetAt(lControlPointIndex));
-						vertices[vertexId].uv[0] = leUV->GetDirectArray().GetAt(lControlPointIndex)[0];
-						vertices[vertexId].uv[1] = leUV->GetDirectArray().GetAt(lControlPointIndex)[1];
+						vertices[vertexId].uv[0] = (float)leUV->GetDirectArray().GetAt(lControlPointIndex)[0];
+						vertices[vertexId].uv[1] = (float)leUV->GetDirectArray().GetAt(lControlPointIndex)[1];
 						break;
 					case FbxGeometryElement::eIndexToDirect:
 					{
-						int id = leUV->GetIndexArray().GetAt(lControlPointIndex);
+						int id = (int)leUV->GetIndexArray().GetAt(lControlPointIndex);
 						pString += Print2DVector(header, leUV->GetDirectArray().GetAt(id));
-						vertices[vertexId].uv[0] = leUV->GetDirectArray().GetAt(id)[0];
-						vertices[vertexId].uv[1] = leUV->GetDirectArray().GetAt(id)[1];
+						vertices[vertexId].uv[0] = (float)leUV->GetDirectArray().GetAt(id)[0];
+						vertices[vertexId].uv[1] = (float)leUV->GetDirectArray().GetAt(id)[1];
 					}
 					break;
 					default:
@@ -291,8 +280,8 @@ string PrintPolygons(FbxMesh* pMesh, string meshName)
 					case FbxGeometryElement::eIndexToDirect:
 					{
 						pString += Print2DVector(header, leUV->GetDirectArray().GetAt(lTextureUVIndex));
-						vertices[vertexId].uv[0] = leUV->GetDirectArray().GetAt(lTextureUVIndex)[0];
-						vertices[vertexId].uv[1] = leUV->GetDirectArray().GetAt(lTextureUVIndex)[1];
+						vertices[vertexId].uv[0] = (float)leUV->GetDirectArray().GetAt(lTextureUVIndex)[0];
+						vertices[vertexId].uv[1] = (float)leUV->GetDirectArray().GetAt(lTextureUVIndex)[1];
 					}
 					break;
 					default:
@@ -318,17 +307,17 @@ string PrintPolygons(FbxMesh* pMesh, string meshName)
 					{
 					case FbxGeometryElement::eDirect:
 						pString += Print3DVector(header, leNormal->GetDirectArray().GetAt(vertexId));
-						vertices[vertexId].norm[0] = leNormal->GetDirectArray().GetAt(vertexId)[0];
-						vertices[vertexId].norm[1] = leNormal->GetDirectArray().GetAt(vertexId)[1];
-						vertices[vertexId].norm[2] = leNormal->GetDirectArray().GetAt(vertexId)[2];
+						vertices[vertexId].normal[0] = (float)leNormal->GetDirectArray().GetAt(vertexId)[0];
+						vertices[vertexId].normal[1] = (float)leNormal->GetDirectArray().GetAt(vertexId)[1];
+						vertices[vertexId].normal[2] = (float)leNormal->GetDirectArray().GetAt(vertexId)[2];
 						break;
 					case FbxGeometryElement::eIndexToDirect:
 					{
 						int id = leNormal->GetIndexArray().GetAt(vertexId);
 						pString += Print3DVector(header, leNormal->GetDirectArray().GetAt(id));
-						vertices[vertexId].norm[0] = leNormal->GetDirectArray().GetAt(id)[0];
-						vertices[vertexId].norm[1] = leNormal->GetDirectArray().GetAt(id)[1];
-						vertices[vertexId].norm[2] = leNormal->GetDirectArray().GetAt(id)[2];
+						vertices[vertexId].normal[0] = (float)leNormal->GetDirectArray().GetAt(id)[0];
+						vertices[vertexId].normal[1] = (float)leNormal->GetDirectArray().GetAt(id)[1];
+						vertices[vertexId].normal[2] = (float)leNormal->GetDirectArray().GetAt(id)[2];
 					}
 					break;
 					default:
@@ -341,9 +330,9 @@ string PrintPolygons(FbxMesh* pMesh, string meshName)
 				{
 					if (leNormal->GetReferenceMode() == FbxGeometryElement::eDirect) {
 						pString += Print3DVector(header, leNormal->GetDirectArray().GetAt(i));
-						vertices[vertexId].norm[0] = leNormal->GetDirectArray().GetAt(vertexId)[0];
-						vertices[vertexId].norm[1] = leNormal->GetDirectArray().GetAt(vertexId)[1];
-						vertices[vertexId].norm[2] = leNormal->GetDirectArray().GetAt(vertexId)[2];
+						vertices[vertexId].normal[0] = (float)leNormal->GetDirectArray().GetAt(vertexId)[0];
+						vertices[vertexId].normal[1] = (float)leNormal->GetDirectArray().GetAt(vertexId)[1];
+						vertices[vertexId].normal[2] = (float)leNormal->GetDirectArray().GetAt(vertexId)[2];
 					}
 				}
 
@@ -359,17 +348,17 @@ string PrintPolygons(FbxMesh* pMesh, string meshName)
 					{
 					case FbxGeometryElement::eDirect:
 						pString += Print3DVector(header, leTangent->GetDirectArray().GetAt(vertexId));
-						vertices[vertexId].tan[0] = leTangent->GetDirectArray().GetAt(vertexId)[0];
-						vertices[vertexId].tan[1] = leTangent->GetDirectArray().GetAt(vertexId)[1];
-						vertices[vertexId].tan[2] = leTangent->GetDirectArray().GetAt(vertexId)[2];
+						vertices[vertexId].tangent[0] = (float)leTangent->GetDirectArray().GetAt(vertexId)[0];
+						vertices[vertexId].tangent[1] = (float)leTangent->GetDirectArray().GetAt(vertexId)[1];
+						vertices[vertexId].tangent[2] = (float)leTangent->GetDirectArray().GetAt(vertexId)[2];
 						break;
 					case FbxGeometryElement::eIndexToDirect:
 					{
 						int id = leTangent->GetIndexArray().GetAt(vertexId);
 						pString += Print3DVector(header, leTangent->GetDirectArray().GetAt(id));
-						vertices[vertexId].tan[0] = leTangent->GetDirectArray().GetAt(id)[0];
-						vertices[vertexId].tan[1] = leTangent->GetDirectArray().GetAt(id)[1];
-						vertices[vertexId].tan[2] = leTangent->GetDirectArray().GetAt(id)[2];
+						vertices[vertexId].tangent[0] = (float)leTangent->GetDirectArray().GetAt(id)[0];
+						vertices[vertexId].tangent[1] = (float)leTangent->GetDirectArray().GetAt(id)[1];
+						vertices[vertexId].tangent[2] = (float)leTangent->GetDirectArray().GetAt(id)[2];
 					}
 					break;
 					default:
@@ -390,17 +379,17 @@ string PrintPolygons(FbxMesh* pMesh, string meshName)
 					{
 					case FbxGeometryElement::eDirect:
 						pString += Print3DVector(header, leBinormal->GetDirectArray().GetAt(vertexId));
-						vertices[vertexId].binorm[0] = leBinormal->GetDirectArray().GetAt(vertexId)[0];
-						vertices[vertexId].binorm[1] = leBinormal->GetDirectArray().GetAt(vertexId)[1];
-						vertices[vertexId].binorm[2] = leBinormal->GetDirectArray().GetAt(vertexId)[2];
+						vertices[vertexId].bitangent[0] = (float)leBinormal->GetDirectArray().GetAt(vertexId)[0];
+						vertices[vertexId].bitangent[1] = (float)leBinormal->GetDirectArray().GetAt(vertexId)[1];
+						vertices[vertexId].bitangent[2] = (float)leBinormal->GetDirectArray().GetAt(vertexId)[2];
 						break;
 					case FbxGeometryElement::eIndexToDirect:
 					{
 						int id = leBinormal->GetIndexArray().GetAt(vertexId);
 						pString += Print3DVector(header, leBinormal->GetDirectArray().GetAt(id));
-						vertices[vertexId].binorm[0] = leBinormal->GetDirectArray().GetAt(id)[0];
-						vertices[vertexId].binorm[1] = leBinormal->GetDirectArray().GetAt(id)[1];
-						vertices[vertexId].binorm[2] = leBinormal->GetDirectArray().GetAt(id)[2];
+						vertices[vertexId].bitangent[0] = (float)leBinormal->GetDirectArray().GetAt(id)[0];
+						vertices[vertexId].bitangent[1] = (float)leBinormal->GetDirectArray().GetAt(id)[1];
+						vertices[vertexId].bitangent[2] = (float)leBinormal->GetDirectArray().GetAt(id)[2];
 					}
 					break;
 					default:
@@ -419,6 +408,298 @@ string PrintPolygons(FbxMesh* pMesh, string meshName)
 	// MM: Close the binary file
 	binFile.close();
 	return pString;
+}
+
+void GetMesh(FbxNode* pNode, Mesh* mesh, vector<PhongMaterial2>& materials)
+{
+	FbxMesh* fbxMesh = (FbxMesh*)pNode->GetNodeAttribute();
+
+	// Applies the mesh name
+	mesh->name = pNode->GetName();
+
+	//pString += PrintControlsPoints(pMesh);
+
+	GetPolygons(fbxMesh, mesh);
+	PrintMaterial(fbxMesh, materials, mesh);	// MM: Textures are called to be printed from PrintMaterial
+	
+}
+
+void GetPolygons(FbxMesh* fbxMesh, Mesh* mesh)
+{
+	int i, j, lPolygonCount = fbxMesh->GetPolygonCount();
+	FbxVector4* lControlPoints = fbxMesh->GetControlPoints();
+	char header[100];
+
+	// --- MM: Allocating memory for the vertices array based on the vertex count ---
+	int vtxCount = fbxMesh->GetPolygonVertexCount();
+	Vertex *vertices = new Vertex[vtxCount];
+	mesh->vertices = new Vertex[vtxCount];
+
+	// MM: Builds vertices for each polygon, and adds to the vertices array we allocated memory for
+	int vertexId = 0;
+	for (i = 0; i < lPolygonCount; i++)
+	{
+		int l;
+		for (l = 0; l < fbxMesh->GetElementPolygonGroupCount(); l++)
+		{
+			FbxGeometryElementPolygonGroup* lePolgrp = fbxMesh->GetElementPolygonGroup(l);
+			switch (lePolgrp->GetMappingMode())
+			{
+			case FbxGeometryElement::eByPolygon:
+				if (lePolgrp->GetReferenceMode() == FbxGeometryElement::eIndex)
+				{
+					FBXSDK_sprintf(header, 100, "        Assigned to group: ");
+					int polyGroupId = lePolgrp->GetIndexArray().GetAt(i);
+					break;
+				}
+			default:
+				// any other mapping modes don't make sense
+				//\"unsupported group assignment\"\n";
+				break;
+			}
+		}
+
+		int lPolygonSize = fbxMesh->GetPolygonSize(i);
+
+		for (j = 0; j < lPolygonSize; j++)
+		{
+			int lControlPointIndex = fbxMesh->GetPolygonVertex(i, j);
+			if (lControlPointIndex < 0)
+			{
+				//DisplayString("            Coordinates: Invalid index found!");
+				continue;
+			}
+			else
+			{
+				// MM: Prints and adds -vertex positions- to the pString and to the vertices array
+				Print3DVector("v ", lControlPoints[lControlPointIndex]);
+				vertices[vertexId].position[0] = (float)lControlPoints[lControlPointIndex][0];
+				vertices[vertexId].position[1] = (float)lControlPoints[lControlPointIndex][1];
+				vertices[vertexId].position[2] = (float)lControlPoints[lControlPointIndex][2];
+
+			}
+
+			for (l = 0; l < fbxMesh->GetElementVertexColorCount(); l++)
+			{
+				FbxGeometryElementVertexColor* leVtxc = fbxMesh->GetElementVertexColor(l);
+				FBXSDK_sprintf(header, 100, "            Color vertex: ");
+
+				switch (leVtxc->GetMappingMode())
+				{
+				default:
+					break;
+				case FbxGeometryElement::eByControlPoint:
+					switch (leVtxc->GetReferenceMode())
+					{
+					case FbxGeometryElement::eDirect:
+						PrintColor(header, leVtxc->GetDirectArray().GetAt(lControlPointIndex));
+						break;
+					case FbxGeometryElement::eIndexToDirect:
+					{
+						int id = leVtxc->GetIndexArray().GetAt(lControlPointIndex);
+						PrintColor(header, leVtxc->GetDirectArray().GetAt(id));
+					}
+					break;
+					default:
+						break; // other reference modes not shown here!
+					}
+					break;
+
+				case FbxGeometryElement::eByPolygonVertex:
+				{
+					switch (leVtxc->GetReferenceMode())
+					{
+					case FbxGeometryElement::eDirect:
+						PrintColor(header, leVtxc->GetDirectArray().GetAt(vertexId));
+						break;
+					case FbxGeometryElement::eIndexToDirect:
+					{
+						int id = leVtxc->GetIndexArray().GetAt(vertexId);
+						PrintColor(header, leVtxc->GetDirectArray().GetAt(id));
+					}
+					break;
+					default:
+						break; // other reference modes not shown here!
+					}
+				}
+				break;
+
+				case FbxGeometryElement::eByPolygon: // doesn't make much sense for UVs
+				case FbxGeometryElement::eAllSame:   // doesn't make much sense for UVs
+				case FbxGeometryElement::eNone:       // doesn't make much sense for UVs
+					break;
+				}
+			}
+			for (l = 0; l < fbxMesh->GetElementUVCount(); ++l)
+			{
+				FbxGeometryElementUV* leUV = fbxMesh->GetElementUV(l);
+				FBXSDK_sprintf(header, 100, "vt ");
+				// MM: Prints and adds -UV positions- to the pString and to the vertices array
+				switch (leUV->GetMappingMode())
+				{
+				default:
+					break;
+				case FbxGeometryElement::eByControlPoint:
+					switch (leUV->GetReferenceMode())
+					{
+					case FbxGeometryElement::eDirect:
+						Print2DVector(header, leUV->GetDirectArray().GetAt(lControlPointIndex));
+						vertices[vertexId].uv[0] = (float)leUV->GetDirectArray().GetAt(lControlPointIndex)[0];
+						vertices[vertexId].uv[1] = (float)leUV->GetDirectArray().GetAt(lControlPointIndex)[1];
+						break;
+					case FbxGeometryElement::eIndexToDirect:
+					{
+						int id = leUV->GetIndexArray().GetAt(lControlPointIndex);
+						Print2DVector(header, leUV->GetDirectArray().GetAt(id));
+						vertices[vertexId].uv[0] = (float)leUV->GetDirectArray().GetAt(id)[0];
+						vertices[vertexId].uv[1] = (float)leUV->GetDirectArray().GetAt(id)[1];
+					}
+					break;
+					default:
+						break; // other reference modes not shown here!
+					}
+					break;
+
+				case FbxGeometryElement::eByPolygonVertex:
+				{
+					int lTextureUVIndex = fbxMesh->GetTextureUVIndex(i, j);
+					switch (leUV->GetReferenceMode())
+					{
+					case FbxGeometryElement::eDirect:
+					case FbxGeometryElement::eIndexToDirect:
+					{
+						Print2DVector(header, leUV->GetDirectArray().GetAt(lTextureUVIndex));
+						vertices[vertexId].uv[0] = (float)leUV->GetDirectArray().GetAt(lTextureUVIndex)[0];
+						vertices[vertexId].uv[1] = (float)leUV->GetDirectArray().GetAt(lTextureUVIndex)[1];
+					}
+					break;
+					default:
+						break; // other reference modes not shown here!
+					}
+				}
+				break;
+
+				case FbxGeometryElement::eByPolygon: // doesn't make much sense for UVs
+				case FbxGeometryElement::eAllSame:   // doesn't make much sense for UVs
+				case FbxGeometryElement::eNone:       // doesn't make much sense for UVs
+					break;
+				}
+			}
+			for (l = 0; l < fbxMesh->GetElementNormalCount(); ++l)
+			{
+				FbxGeometryElementNormal* leNormal = fbxMesh->GetElementNormal(l);
+				FBXSDK_sprintf(header, 100, "vn ");
+				// MM: Prints and adds -normal positions- to the pString and to the vertices array
+				if (leNormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+				{
+					switch (leNormal->GetReferenceMode())
+					{
+					case FbxGeometryElement::eDirect:
+						Print3DVector(header, leNormal->GetDirectArray().GetAt(vertexId));
+						vertices[vertexId].normal[0] = (float)leNormal->GetDirectArray().GetAt(vertexId)[0];
+						vertices[vertexId].normal[1] = (float)leNormal->GetDirectArray().GetAt(vertexId)[1];
+						vertices[vertexId].normal[2] = (float)leNormal->GetDirectArray().GetAt(vertexId)[2];
+						break;
+					case FbxGeometryElement::eIndexToDirect:
+					{
+						int id = leNormal->GetIndexArray().GetAt(vertexId);
+						Print3DVector(header, leNormal->GetDirectArray().GetAt(id));
+						vertices[vertexId].normal[0] = (float)leNormal->GetDirectArray().GetAt(id)[0];
+						vertices[vertexId].normal[1] = (float)leNormal->GetDirectArray().GetAt(id)[1];
+						vertices[vertexId].normal[2] = (float)leNormal->GetDirectArray().GetAt(id)[2];
+					}
+					break;
+					default:
+						break; // other reference modes not shown here!
+					}
+
+				}
+				// MM: This one is used for spheres and planes, as they previously did not output normals
+				if (leNormal->GetMappingMode() == FbxGeometryElement::eByControlPoint)
+				{
+					if (leNormal->GetReferenceMode() == FbxGeometryElement::eDirect) {
+						Print3DVector(header, leNormal->GetDirectArray().GetAt(i));
+						vertices[vertexId].normal[0] = (float)leNormal->GetDirectArray().GetAt(vertexId)[0];
+						vertices[vertexId].normal[1] = (float)leNormal->GetDirectArray().GetAt(vertexId)[1];
+						vertices[vertexId].normal[2] = (float)leNormal->GetDirectArray().GetAt(vertexId)[2];
+					}
+				}
+
+			}
+			for (l = 0; l < fbxMesh->GetElementTangentCount(); ++l)
+			{
+				FbxGeometryElementTangent* leTangent = fbxMesh->GetElementTangent(l);
+				FBXSDK_sprintf(header, 100, "vtan ");
+				// MM: Prints and adds -tangents- to the pString and to the vertices array
+				if (leTangent->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+				{
+					switch (leTangent->GetReferenceMode())
+					{
+					case FbxGeometryElement::eDirect:
+						Print3DVector(header, leTangent->GetDirectArray().GetAt(vertexId));
+						vertices[vertexId].tangent[0] = (float)leTangent->GetDirectArray().GetAt(vertexId)[0];
+						vertices[vertexId].tangent[1] = (float)leTangent->GetDirectArray().GetAt(vertexId)[1];
+						vertices[vertexId].tangent[2] = (float)leTangent->GetDirectArray().GetAt(vertexId)[2];
+						break;
+					case FbxGeometryElement::eIndexToDirect:
+					{
+						int id = leTangent->GetIndexArray().GetAt(vertexId);
+						Print3DVector(header, leTangent->GetDirectArray().GetAt(id));
+						vertices[vertexId].tangent[0] = (float)leTangent->GetDirectArray().GetAt(id)[0];
+						vertices[vertexId].tangent[1] = (float)leTangent->GetDirectArray().GetAt(id)[1];
+						vertices[vertexId].tangent[2] = (float)leTangent->GetDirectArray().GetAt(id)[2];
+					}
+					break;
+					default:
+						break; // other reference modes not shown here!
+					}
+				}
+
+			}
+			for (l = 0; l < fbxMesh->GetElementBinormalCount(); ++l)
+			{
+
+				FbxGeometryElementBinormal* leBinormal = fbxMesh->GetElementBinormal(l);
+				FBXSDK_sprintf(header, 100, "vbin ");
+				// MM: Prints and adds -binormals- to the pString and to the vertices array
+				if (leBinormal->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+				{
+					switch (leBinormal->GetReferenceMode())
+					{
+					case FbxGeometryElement::eDirect:
+						Print3DVector(header, leBinormal->GetDirectArray().GetAt(vertexId));
+						vertices[vertexId].bitangent[0] = (float)leBinormal->GetDirectArray().GetAt(vertexId)[0];
+						vertices[vertexId].bitangent[1] = (float)leBinormal->GetDirectArray().GetAt(vertexId)[1];
+						vertices[vertexId].bitangent[2] = (float)leBinormal->GetDirectArray().GetAt(vertexId)[2];
+						break;
+					case FbxGeometryElement::eIndexToDirect:
+					{
+						int id = leBinormal->GetIndexArray().GetAt(vertexId);
+						Print3DVector(header, leBinormal->GetDirectArray().GetAt(id));
+						vertices[vertexId].bitangent[0] = (float)leBinormal->GetDirectArray().GetAt(id)[0];
+						vertices[vertexId].bitangent[1] = (float)leBinormal->GetDirectArray().GetAt(id)[1];
+						vertices[vertexId].bitangent[2] = (float)leBinormal->GetDirectArray().GetAt(id)[2];
+					}
+					break;
+					default:
+						break; // other reference modes not shown here!
+					}
+				}
+			}
+			vertexId++;
+		} // for polygonSize
+	} // for polygonCount
+
+	// Copies the pointerdata created here into the pointer in the recived mesh struct
+	// Mesh should be arriving from a vector
+	// memcpy - the vertices struct containts 14 floats, additionally there are vtxCount amount of vertices
+	// This is the amount of memory that will be copied into the mesh pointer
+	mesh->vertexCount = vtxCount;
+	memcpy(mesh->vertices, vertices, sizeof(float) * 14 * vtxCount);
+
+	// MM: Delete the allocated memory for vertices
+	if (vertices)
+		delete[] vertices;
 }
 
 //string PrintMaterialMapping(FbxMesh* pMesh)

@@ -76,13 +76,21 @@ string PrintNrOfMeshes(FbxScene* pScene)
 	int nrOfMeshes = 0;
 
 	// MM: Opens the binary file in binary mode. As this is the first time something it written to the binary file, this will wipe the existing file.
+	// The file gets wiped when this saves.
 	ofstream binFile(BINARY_FILE, ofstream::binary);
 
+	// Loop of all the elements in the scene
 	for (i = 0; i < lRootNode->GetChildCount(); i++)
 	{
+		// Will loop trough all the children of the secondary root elements (elements under the scene)
 		nrOfMeshes += PrintNrOfMeshes(lRootNode->GetChild(i), 0);
 	}
-	int temp = lRootNode->GetChildCount();
+
+	// Proper way of getting scene element count?
+	// This will receive the child count of the scene (root) node
+	// When true, will also aquire all the children of the children recurisvely
+	int elementCount = lRootNode->GetChildCount(true);
+
 	pString += "Nr of Meshes: " +to_string(nrOfMeshes)+"\n";
 	cout << "Nr of meshes: " << nrOfMeshes << endl;
 	binFile.write((char*)&nrOfMeshes, sizeof(int));
@@ -92,12 +100,9 @@ string PrintNrOfMeshes(FbxScene* pScene)
 
 int PrintNrOfMeshes(FbxNode* pNode, int pDepth)
 {
-	int nrOfMeshes = 0;;
-	int i;
+	int nrOfMeshes = 1;
 
-	nrOfMeshes++;
-
-	for (i = 0; i < pNode->GetChildCount(); i++)
+	for (int i = 0; i < pNode->GetChildCount(); i++)
 	{
 		nrOfMeshes += PrintNrOfMeshes(pNode->GetChild(i), pDepth + 1);
 		return nrOfMeshes;

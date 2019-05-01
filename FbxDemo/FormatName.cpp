@@ -12,7 +12,7 @@
 
 char* FormatName(std::string tempName) {
 
-	int nameLength = strlen(tempName.c_str());
+	int nameLength = (int)strlen(tempName.c_str());
 	char name[NAME_SIZE];
 	for (int i = 0; i < nameLength; i++) {
 		name[i] = tempName[i];

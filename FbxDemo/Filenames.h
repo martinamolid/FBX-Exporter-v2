@@ -19,15 +19,86 @@
 ========================================================================================================================
 */
 
+/*=================================================================================
+	Filehandling will be handled with the command prompt later
+=================================================================================*/
+
+
+#include <vector>
 #include <string>
+
+using namespace std;
 
 #define NAME_SIZE 256
 
 const std::string ASCII_FILE = "Exported_Files/xTestAscii.txt";
 const std::string BINARY_FILE = "Exported_Files/xTestBinary.bin";
-const std::string IN_FBX_FILEPATH = "FBX_Files/boxLight.fbx";
+const std::string IN_FBX_FILEPATH = "FBX_Files/LevelTest.fbx";
+
+const std::string ASCII2_FILE = "Exported_Files/FileOutASCII.txt";
+const std::string BINARY2_FILE = "Exported_Files/FileOutBinary.meh";
+//const std::string IN_FBX_FILEPATH = "FBX_Files/LevelTest.fbx";
 
 // MM: Standard names, in case you mess them up too much
 //const std::string ASCII_FILE = "Exported_Files/xTestAscii.txt";
 //const std::string BINARY_FILE = "Exported_Files/xTestBinary.bin";
 //const std::string IN_FBX_FILEPATH = "FBX_Files/cube.fbx";
+
+struct PhongMaterial 
+{
+	float ambient[3];
+	float diffuse[3];
+	float specular[3];
+	float emissive[3];
+	float opacity;
+	float shininess;
+	float reflectivity;
+	int nrOfTextures;
+};
+
+struct PhongMaterial2
+{
+	string name;
+	float ambient[3];
+	float diffuse[3];
+	float specular[3];
+	float emissive[3];
+	float opacity;
+	float shininess;
+	float reflectivity;
+	int nrOfTextures;
+};
+
+struct GeoTransformations
+{
+	float translation[3];
+	float rotation[3];
+	float scale[3];
+};
+
+struct Vertex
+{
+	float position[3];
+	float uv[2];
+	float normal[3];
+	float tangent[3];
+	float bitangent[3];
+};
+
+struct Mesh
+{
+	string name;
+	vector<string> materialNames;
+	vector<Mesh> children;
+
+	// Might make this into a vector
+	//vector<Vertex> vertices;
+	int vertexCount;
+	Vertex* vertices;
+
+	// Constructor that may not be needed
+	Mesh()
+	{
+		vertices = nullptr;
+	}
+};
