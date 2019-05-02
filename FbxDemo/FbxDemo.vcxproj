@@ -101,9 +101,6 @@
     <ClInclude Include="PrintTexture.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\exporterImporterHeaders.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\Common\AnimationUtility.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -176,6 +173,7 @@
     <ClCompile Include="DisplayUserProperties.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="exporterImporterHeaders.cpp" />
     <ClCompile Include="FormatName.cpp" />
     <ClCompile Include="main.cxx" />
     <ClCompile Include="PrintLight.cpp" />
