@@ -279,7 +279,8 @@ int main(int argc, char** argv)
 		// Size: 256 * char
 		int nameLength = (int)strlen(meshes[i].name.c_str());
 		char finalMeshesName[NAME_SIZE];
-		for (int j = 0; j < nameLength; j++) {
+		for (int j = 0; j < nameLength; j++) 
+		{
 			finalMeshesName[j] = meshes[i].name[j];
 		}
 		finalMeshesName[nameLength] = '\0'; // Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
@@ -308,7 +309,8 @@ int main(int argc, char** argv)
 		// Size: 256 * char
 		int nameLength = (int)strlen(meshes[i].name.c_str());
 		char finalMaterialName[NAME_SIZE];
-		for (int j = 0; j < nameLength; j++) {
+		for (int j = 0; j < nameLength; j++)
+		{
 			finalMaterialName[j] = materials[i].name[j];
 		}
 		finalMaterialName[nameLength] = '\0'; // Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
@@ -317,9 +319,10 @@ int main(int argc, char** argv)
 		binFile2.write((char*)&finalMaterialName, sizeof(char) * NAME_SIZE);
 
 		// 3 Material data
-		binFile2.write((char*)&materials[i], sizeof(PhongMaterial2));
-		// MM: File has to be closed here as it is reopened in PrintTexture
-		
+		binFile2.write((char*)&materials[i].ambient, sizeof(float) * 3);
+		binFile2.write((char*)&materials[i].diffuse, sizeof(float) * 3);
+		binFile2.write((char*)&materials[i].specular, sizeof(float) * 3);
+		binFile2.write((char*)&materials[i].emissive, sizeof(float) * 3);
 	}
 	binFile2.close();
 
