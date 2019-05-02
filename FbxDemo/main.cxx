@@ -227,33 +227,37 @@ int main(int argc, char** argv)
 
 		// Size: 256 * char
 		int nameLength = (int)strlen(meshes[i].name.c_str());
-		char finalMeshName[NAME_SIZE];
+		char finalMaterialName[NAME_SIZE];
 		for (int j = 0; j < nameLength; j++) {
-			finalMeshName[j] = meshes[i].name[j];
+			finalMaterialName[j] = materials[i].name[j];
 		}
-		finalMeshName[nameLength] = '\0';		// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
+		finalMaterialName[nameLength] = '\0';		// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
 		// 2 Material name
 		asciiFile2 << "  # Material name [(char) * 256]: " << endl;
-		asciiFile2 << finalMeshName << endl;	//* Binary data
+		asciiFile2 << finalMaterialName << endl;	//* Binary data
 
 		// 3 Material data
-		asciiFile2 << "  # Ambient, diffuse, specular, emissive, opacity, shininess, reflectivity" << "[(float) * 15]" << endl;
+		asciiFile2 << "  # Ambient, diffuse, specular, emissive" << "[(float) * 15]" << endl;
 		//*v Binary data
 		asciiFile2 << (float)materials[i].ambient[0] << ", " << (float)materials[i].ambient[1] << ", " << (float)materials[i].ambient[2] << endl;
 		asciiFile2 << (float)materials[i].diffuse[0] << ", " << (float)materials[i].diffuse[1] << ", " << (float)materials[i].diffuse[2] << endl;
 		asciiFile2 << (float)materials[i].specular[0] << ", " << (float)materials[i].specular[1] << ", " << (float)materials[i].specular[2] << endl;
 		asciiFile2 << (float)materials[i].emissive[0] << ", " << (float)materials[i].emissive[1] << ", " << (float)materials[i].emissive[2] << endl;
-		asciiFile2 << (float)materials[i].opacity << endl;
-		asciiFile2 << (float)materials[i].shininess << endl;
-		asciiFile2 << (float)materials[i].reflectivity << endl;
+		//asciiFile2 << (float)materials[i].opacity << endl;
+		//asciiFile2 << (float)materials[i].shininess << endl;
+		//asciiFile2 << (float)materials[i].reflectivity << endl;
 		//*^ Binary data
 
-		asciiFile2 << "  # Texture count [(int)]: " << endl;
-		asciiFile2 << (int)materials[i].nrOfTextures << endl;	//* Binary data
+		//asciiFile2 << "  # Texture count [(int)]: " << endl;
+		//asciiFile2 << (int)materials[i].nrOfTextures << endl;	//* Binary data
 
 		// 4 Albedo filename
 
+
+
 		// 5 Normal filename
+
+
 
 	}
 	asciiFile2.close();
@@ -274,14 +278,14 @@ int main(int argc, char** argv)
 		// --- MM: Getting, formatting and printing mesh name ---
 		// Size: 256 * char
 		int nameLength = (int)strlen(meshes[i].name.c_str());
-		char finalMeshName[NAME_SIZE];
+		char finalMeshesName[NAME_SIZE];
 		for (int j = 0; j < nameLength; j++) {
-			finalMeshName[j] = meshes[i].name[j];
+			finalMeshesName[j] = meshes[i].name[j];
 		}
-		finalMeshName[nameLength] = '\0'; // Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
+		finalMeshesName[nameLength] = '\0'; // Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
 
 		// 1 Mesh name
-		binFile2.write((char*)finalMeshName, sizeof(char) * NAME_SIZE);
+		binFile2.write((char*)finalMeshesName, sizeof(char) * NAME_SIZE);
 
 		// 2 Material count
 		int nrOfMat = (int)meshes[i].materialNames.size();

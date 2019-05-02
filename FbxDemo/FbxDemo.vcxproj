@@ -101,6 +101,9 @@
     <ClInclude Include="PrintTexture.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\exporterImporterHeaders.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\Common\AnimationUtility.cxx">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
