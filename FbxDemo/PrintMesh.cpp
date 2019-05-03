@@ -713,8 +713,13 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 
 /*
 ========================================================================================================================
+This function loops through an FbxObjects properties. Which is the custom attributes added in Maya.
 
-
+First setting "Type" and "Link" in the Meshholder to 0;
+Loops through each property.
+If the property is an int, (eFbxInt)
+then it checks if the name of the property is "Type" or "Link"
+Then retrives the information and stores it.
 ========================================================================================================================
 */
 void DisplayUserProperties(FbxObject* pObject, MeshHolder* mesh)
