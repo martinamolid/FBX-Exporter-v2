@@ -108,6 +108,9 @@ struct MeshHolder
 	int vertexCount;
 	Vertex* vertices;
 
+	int type;
+	int link;
+
 	// Constructor that may not be needed
 	MeshHolder()
 	{

@@ -11,5 +11,5 @@ using namespace std;
 
 string PrintMesh(FbxNode* pNode);
 
-void DisplayUserProperties(FbxObject* pObject, Mesh* mesh);
+void DisplayUserProperties(FbxObject* pObject, MeshHolder* mesh);
 void GetMesh(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& materials);

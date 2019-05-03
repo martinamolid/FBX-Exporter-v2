@@ -717,7 +717,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 
 ========================================================================================================================
 */
-void DisplayUserProperties(FbxObject* pObject, Mesh* mesh)
+void DisplayUserProperties(FbxObject* pObject, MeshHolder* mesh)
 {
 	int lCount = 0;
 	FbxString lTitleStr = "    Property Count: ";
