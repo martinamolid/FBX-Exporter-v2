@@ -33,7 +33,7 @@ using namespace std;
 
 const std::string ASCII_FILE = "Exported_Files/xTestAscii.txt";
 const std::string BINARY_FILE = "Exported_Files/xTestBinary.bin";
-const std::string IN_FBX_FILEPATH = "FBX_Files/Level1[Culled].fbx";
+const std::string IN_FBX_FILEPATH = "FBX_Files/Boxes.fbx";
 
 const std::string ASCII2_FILE = "Exported_Files/Level1ASCII.txt";
 const std::string BINARY2_FILE = "Exported_Files/Level1[Culled].meh";
@@ -90,6 +90,9 @@ struct Mesh
 	string name;
 	vector<string> materialNames;
 	vector<Mesh> children;
+
+	int type;
+	int link;
 
 	// Might make this into a vector
 	//vector<Vertex> vertices;
