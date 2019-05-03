@@ -451,8 +451,9 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, Mesh* m
 					lTextureCount = lProperty.GetSrcObjectCount<FbxTexture>();
 					for (int j = 0; j < lTextureCount; j++) {
 						FbxFileTexture* lTexture = lProperty.GetSrcObject<FbxFileTexture>(j);
-						string temp = lTexture->GetRelativeFileName();
+						string albedo = lTexture->GetRelativeFileName();
 						
+
 						if (lTexture)
 						{
 							nrOfTextures++;
