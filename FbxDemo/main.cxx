@@ -444,7 +444,7 @@ string PrintContent(FbxNode* pNode)
 
         case FbxNodeAttribute::eCamera:    
             //DisplayCamera(pNode);
-            break;
+			break;
 
         case FbxNodeAttribute::eLight:     
             //DisplayLight(pNode);
