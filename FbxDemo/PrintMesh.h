@@ -10,4 +10,4 @@
 using namespace std;
 
 string PrintMesh(FbxNode* pNode);
-void GetMesh(FbxNode* pNode, Mesh* mesh, vector<PhongMaterial2>& materials);
+void GetMesh(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& materials);

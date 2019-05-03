@@ -73,7 +73,7 @@ using namespace std;
 // Local function prototypes.
 string PrintContent(FbxScene* pScene);
 string PrintContent(FbxNode* pNode);
-void PrintContent(FbxNode* pNode, Mesh* mesh, vector<PhongMaterial2>& mats);
+void PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats);
 void DisplayTarget(FbxNode* pNode);
 void DisplayTransformPropagation(FbxNode* pNode);
 string PrintGeometricTransform(FbxNode* pNode);
@@ -112,8 +112,8 @@ int main(int argc, char** argv)
 	}
 
 	// ASCII FILE OPENING _ TO BE MOVED
-	ofstream asciiFile;
-	asciiFile.open(ASCII_FILE);	// MM: Opens the ASCII file to write the ASCII strings to
+	//ofstream asciiFile;
+	//asciiFile.open(ASCII_FILE);	// MM: Opens the ASCII file to write the ASCII strings to
 
 	/*
 	========================================================================================================================
@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 	int elementCount = sceneRootNode->GetChildCount(true);
 
 	// Vector of all the meshes in the scene
-	vector<Mesh> meshes;
+	vector<MeshHolder> meshes;
 	vector<PhongMaterial2> materials;
 
 	// Reserves memory
@@ -150,10 +150,27 @@ int main(int argc, char** argv)
 	{
 		for (int i = 0; i < elementCount; i++)
 		{
-			Mesh fillMesh;
+			MeshHolder fillMesh;
 			PrintContent(sceneRootNode->GetChild(i), &fillMesh, materials);
 			meshes.push_back(fillMesh);
 		}
+	}
+
+	vector<Mesh> meshData;
+	for (int i = 0; i < meshes.size(); i++)
+	{
+		Mesh newMesh;
+		for (int j = 0; j < NAME_SIZE; j++)
+		{
+			newMesh.name[j] = meshes[i].name[j];
+		}
+		
+		for (int j = 0; j < NAME_SIZE; j++)
+		{
+			newMesh.materialName[j] = meshes[i].materialName[j];
+		}
+
+		newMesh.vertexCount = meshes[i].vertexCount;
 	}
 
 
@@ -179,22 +196,13 @@ int main(int argc, char** argv)
 	{
 		asciiFile2 << "    //v Mesh " << i << " Header " << " --------------------" << endl << endl;
 
-		// --- MM: Getting, formatting and printing mesh name ---
-		int nameLength = (int)strlen(meshes[i].name.c_str());
-		char finalMeshName[NAME_SIZE];
-		for (int j = 0; j < nameLength; j++) 
-		{
-			finalMeshName[j] = meshes[i].name[j];
-		}
-		finalMeshName[nameLength] = '\0';				// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
-
 		// 1 Mesh name
 		asciiFile2 << "  # Mesh name [(char) * 256]: " << endl;
-		asciiFile2 << finalMeshName << endl;			//* Binary data
+		asciiFile2 << meshes[i].name << endl;			//* Binary data
 
 		// 2  Material count
-		asciiFile2 << "  # Material count [(int)]: " << endl;		
-		asciiFile2 << (int)meshes[i].materialNames.size() << endl;	//* Binary data
+		asciiFile2 << "  # Material name [(char) * 256]: " << endl;		
+		asciiFile2 << meshes[i].materialName << endl;	//* Binary data
 
 		// 3 Vertex count
 		asciiFile2 << "  # Vertex count [(int)]: " << endl;
@@ -221,54 +229,38 @@ int main(int argc, char** argv)
 	for (int i = 0; i < materials.size(); i++)
 	{
 		asciiFile2 << "    // Material " << i << " --------------------" << endl;
-		// 1 Materials index
-		asciiFile2 << "  # Material index [(int)]: " << endl;
-		asciiFile2 << i << endl;				//* Binary data
 
-		// Size: 256 * char
-		int nameLength = (int)strlen(meshes[i].name.c_str());
-		char finalMaterialName[NAME_SIZE];
-		for (int j = 0; j < nameLength; j++) {
-			finalMaterialName[j] = materials[i].name[j];
-		}
-		finalMaterialName[nameLength] = '\0';		// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
-		// 2 Material name
+		// 1 Material name
 		asciiFile2 << "  # Material name [(char) * 256]: " << endl;
-		asciiFile2 << finalMaterialName << endl;	//* Binary data
+		asciiFile2 << materials[i].name << endl;	//* Binary data
 
-		// 3 Material data
+		// 2 Material data
 		asciiFile2 << "  # Ambient, diffuse, specular, emissive" << "[(float) * 15]" << endl;
 		//*v Binary data
 		asciiFile2 << (float)materials[i].ambient[0] << ", " << (float)materials[i].ambient[1] << ", " << (float)materials[i].ambient[2] << endl;
 		asciiFile2 << (float)materials[i].diffuse[0] << ", " << (float)materials[i].diffuse[1] << ", " << (float)materials[i].diffuse[2] << endl;
 		asciiFile2 << (float)materials[i].specular[0] << ", " << (float)materials[i].specular[1] << ", " << (float)materials[i].specular[2] << endl;
 		asciiFile2 << (float)materials[i].emissive[0] << ", " << (float)materials[i].emissive[1] << ", " << (float)materials[i].emissive[2] << endl;
-		//asciiFile2 << (float)materials[i].opacity << endl;
-		//asciiFile2 << (float)materials[i].shininess << endl;
-		//asciiFile2 << (float)materials[i].reflectivity << endl;
 		//*^ Binary data
 
-		//asciiFile2 << "  # Texture count [(int)]: " << endl;
-		//asciiFile2 << (int)materials[i].nrOfTextures << endl;	//* Binary data
 
-		// 4 Albedo filename
+		// 3 Albedo filename
 
 
 
-		// 5 Normal filename
+		// 4 Normal filename
 
 
 
 	}
 	asciiFile2.close();
 
-
+	// Binary file
 	ofstream binFile2(BINARY2_FILE, ofstream::binary);
 
 	// - 1 File Header
 	int meshAmount = (int)meshes.size();
 	binFile2.write((char*)&meshAmount, sizeof(int));
-
 	int materialAmount = (int)materials.size();
 	binFile2.write((char*)&materialAmount, sizeof(int));
 
@@ -276,21 +268,12 @@ int main(int argc, char** argv)
 	for (int i = 0; i < meshes.size(); i++)
 	{
 		// --- MM: Getting, formatting and printing mesh name ---
-		// Size: 256 * char
-		int nameLength = (int)strlen(meshes[i].name.c_str());
-		char finalMeshesName[NAME_SIZE];
-		for (int j = 0; j < nameLength; j++) 
-		{
-			finalMeshesName[j] = meshes[i].name[j];
-		}
-		finalMeshesName[nameLength] = '\0'; // Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
 
 		// 1 Mesh name
-		binFile2.write((char*)finalMeshesName, sizeof(char) * NAME_SIZE);
+		binFile2.write((char*)meshes[i].name, sizeof(char) * NAME_SIZE);
 
-		// 2 Material count
-		int nrOfMat = (int)meshes[i].materialNames.size();
-		binFile2.write((char*)&nrOfMat, sizeof(int));
+		// 2 Material name
+		binFile2.write((char*)&meshes[i].materialName, sizeof(char) * NAME_SIZE);
 
 		// 3 Vertex count
 		int vtxCount = meshes[i].vertexCount;
@@ -303,26 +286,29 @@ int main(int argc, char** argv)
 	// - 3 Materials
 	for (int i = 0; i < materials.size(); i++)
 	{
-		// 1 Material index
-		binFile2.write((char*)&i, sizeof(int));
 
-		// Size: 256 * char
-		int nameLength = (int)strlen(meshes[i].name.c_str());
-		char finalMaterialName[NAME_SIZE];
-		for (int j = 0; j < nameLength; j++)
-		{
-			finalMaterialName[j] = materials[i].name[j];
-		}
-		finalMaterialName[nameLength] = '\0'; // Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
+		binFile2.write((char*)&materials[i], sizeof(int));
 
-		// 2 Material names
-		binFile2.write((char*)&finalMaterialName, sizeof(char) * NAME_SIZE);
+		//// 1 Material index
+		//binFile2.write((char*)&i, sizeof(int));
 
-		// 3 Material data
-		binFile2.write((char*)&materials[i].ambient, sizeof(float) * 3);
-		binFile2.write((char*)&materials[i].diffuse, sizeof(float) * 3);
-		binFile2.write((char*)&materials[i].specular, sizeof(float) * 3);
-		binFile2.write((char*)&materials[i].emissive, sizeof(float) * 3);
+		//// Size: 256 * char
+		//int nameLength = (int)strlen(meshes[i].name.c_str());
+		//char finalMaterialName[NAME_SIZE];
+		//for (int j = 0; j < nameLength; j++)
+		//{
+		//	finalMaterialName[j] = materials[i].name[j];
+		//}
+		//finalMaterialName[nameLength] = '\0'; // Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
+
+		//// 2 Material names
+		//binFile2.write((char*)&finalMaterialName, sizeof(char) * NAME_SIZE);
+
+		//// 3 Material data
+		//binFile2.write((char*)&materials[i].ambient, sizeof(float) * 3);
+		//binFile2.write((char*)&materials[i].diffuse, sizeof(float) * 3);
+		//binFile2.write((char*)&materials[i].specular, sizeof(float) * 3);
+		//binFile2.write((char*)&materials[i].emissive, sizeof(float) * 3);
 	}
 	binFile2.close();
 
@@ -353,12 +339,12 @@ int main(int argc, char** argv)
         //FBXSDK_printf("\n\n---------\nHierarchy\n---------\n\n");
 
 			// TO BE DELETED - OLD WAY TO GET ELEMENTS
-		if (gVerbose) asciiFile << PrintNrOfMeshes(fileScene);//PrintHierarchy(lScene); // MM: Prints how many meshes exists in the FBX file
+		//if (gVerbose) asciiFile << PrintNrOfMeshes(fileScene);//PrintHierarchy(lScene); // MM: Prints how many meshes exists in the FBX file
 
         //FBXSDK_printf("\n\n------------\nNode Content\n------------\n\n");
 
 			
-        if( gVerbose ) asciiFile << PrintContent(fileScene);	// MM: Prints node content, currently only meshes ( see below )
+       // if( gVerbose ) asciiFile << PrintContent(fileScene);	// MM: Prints node content, currently only meshes ( see below )
 
         //FBXSDK_printf("\n\n----\nPose\n----\n\n");
 
@@ -377,7 +363,7 @@ int main(int argc, char** argv)
     }
 
 	// ASCII FILE OPENING _ TO BE MOVED
-	asciiFile.close();
+	//asciiFile.close();
 
 
 
@@ -487,7 +473,7 @@ string PrintContent(FbxNode* pNode)
 }
 
 
-void PrintContent(FbxNode* pNode, Mesh* mesh, vector<PhongMaterial2>& mats)
+void PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats)
 {
 	// This will check what type this node is
 	// All the cases represent the different types
@@ -555,7 +541,7 @@ void PrintContent(FbxNode* pNode, Mesh* mesh, vector<PhongMaterial2>& mats)
 	// Loops through all the children of this node
 	for (int i = 0; i < pNode->GetChildCount(); i++)
 	{
-		Mesh fillMesh;
+		MeshHolder fillMesh;
 		
 		PrintContent(pNode->GetChild(i), &fillMesh, mats);
 
