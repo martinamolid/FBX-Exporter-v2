@@ -10,4 +10,4 @@
 using namespace std;
 
 string PrintMaterial(FbxGeometry* pGeometry);
-void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, Mesh* mesh);
+void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHolder* mesh);
