@@ -156,6 +156,7 @@ int main(int argc, char** argv)
 		}
 	}
 
+	// Parse writing data
 	vector<Mesh> meshData;
 	for (int i = 0; i < meshes.size(); i++)
 	{
@@ -171,6 +172,8 @@ int main(int argc, char** argv)
 		}
 
 		newMesh.vertexCount = meshes[i].vertexCount;
+
+		meshData.push_back(newMesh);
 	}
 
 
@@ -185,10 +188,10 @@ int main(int argc, char** argv)
 
 	// - 1 File header
 	asciiFile2 << "  //v File Header --------------------" << endl;
-	asciiFile2 << "  # Mesh count [(int)]" << endl;
+	asciiFile2 << "  # Mesh count [(unsigned int)]" << endl;
 	asciiFile2 << meshes.size() << endl;				//* Binary data
 
-	asciiFile2 << "  # Material count [(int)]" << endl;
+	asciiFile2 << "  # Material count [(unsigned int)]" << endl;
 	asciiFile2 << materials.size() << endl;				//* Binary data
 	asciiFile2 << "  //^ File Header --------------------" << endl << endl;
 	// - 2 Meshes
@@ -205,13 +208,13 @@ int main(int argc, char** argv)
 		asciiFile2 << meshes[i].materialName << endl;	//* Binary data
 
 		// 3 Vertex count
-		asciiFile2 << "  # Vertex count [(int)]: " << endl;
+		asciiFile2 << "  # Vertex count [(unsigned int)]: " << endl;
 		asciiFile2 << meshes[i].vertexCount << endl;	//* Binary data
 
 		asciiFile2 << "    //^ Mesh " << i << " Header " <<  " --------------------" << endl << endl;
 		
 		// 4  Vertex data
-		for (int j = 0; j < meshes[i].vertexCount; j++)
+		for (unsigned int j = 0; j < meshes[i].vertexCount; j++)
 		{
 			asciiFile2 << "  * " << j << " Vertex position / " << "uv / " << "normal / " << "tangent / " << "binormal " << "[(float) * 14]" << endl;
 			//v Binary data
@@ -259,25 +262,27 @@ int main(int argc, char** argv)
 	ofstream binFile2(BINARY2_FILE, ofstream::binary);
 
 	// - 1 File Header
-	int meshAmount = (int)meshes.size();
+	int meshAmount = (unsigned int)meshData.size();
 	binFile2.write((char*)&meshAmount, sizeof(int));
-	int materialAmount = (int)materials.size();
+	int materialAmount = (unsigned int)materials.size();
 	binFile2.write((char*)&materialAmount, sizeof(int));
 
 	// - 2 Meshes
-	for (int i = 0; i < meshes.size(); i++)
+	for (int i = 0; i < meshAmount; i++)
 	{
 		// --- MM: Getting, formatting and printing mesh name ---
 
-		// 1 Mesh name
-		binFile2.write((char*)meshes[i].name, sizeof(char) * NAME_SIZE);
+		//// 1 Mesh name
+		//binFile2.write((char*)meshes[i].name, sizeof(char) * NAME_SIZE);
 
-		// 2 Material name
-		binFile2.write((char*)&meshes[i].materialName, sizeof(char) * NAME_SIZE);
+		//// 2 Material name
+		//binFile2.write((char*)&meshes[i].materialName, sizeof(char) * NAME_SIZE);
+
+		binFile2.write((char*)&meshData[i], sizeof(Mesh));
 
 		// 3 Vertex count
-		int vtxCount = meshes[i].vertexCount;
-		binFile2.write((char*)&vtxCount, sizeof(int));
+		unsigned int vtxCount = meshData[i].vertexCount;
+		binFile2.write((char*)&vtxCount, sizeof(unsigned int));
 
 		// 4 Vertex data (pos, uv, norm, tangent, bitangent)
 		binFile2.write((char*)meshes[i].vertices, sizeof(Vertex) * vtxCount);
@@ -287,7 +292,7 @@ int main(int argc, char** argv)
 	for (int i = 0; i < materials.size(); i++)
 	{
 
-		binFile2.write((char*)&materials[i], sizeof(int));
+		binFile2.write((char*)&materials[i], sizeof(PhongMaterial2));
 
 		//// 1 Material index
 		//binFile2.write((char*)&i, sizeof(int));

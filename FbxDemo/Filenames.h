@@ -91,7 +91,7 @@ struct Mesh
 	char materialName[256];
 	//char childName;
 
-	int vertexCount;
+	unsigned int vertexCount;
 };
 
 struct MeshHolder
@@ -102,7 +102,7 @@ struct MeshHolder
 
 	// Might make this into a vector
 	//vector<Vertex> vertices;
-	int vertexCount;
+	unsigned int vertexCount;
 	Vertex* vertices;
 
 	// Constructor that may not be needed
