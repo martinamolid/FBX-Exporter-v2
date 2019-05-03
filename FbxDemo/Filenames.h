@@ -33,7 +33,7 @@ using namespace std;
 
 const std::string ASCII_FILE = "Exported_Files/xTestAscii.txt";
 const std::string BINARY_FILE = "Exported_Files/xTestBinary.bin";
-const std::string IN_FBX_FILEPATH = "FBX_Files/Boxes.fbx";
+const std::string IN_FBX_FILEPATH = "FBX_Files/RoomTest.fbx";
 
 const std::string ASCII2_FILE = "Exported_Files/RoomTestASCII.txt";
 const std::string BINARY2_FILE = "Exported_Files/RoomTest.meh";
