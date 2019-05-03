@@ -450,10 +450,13 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, Mesh* m
 					//run++;
 					lTextureCount = lProperty.GetSrcObjectCount<FbxTexture>();
 					for (int j = 0; j < lTextureCount; j++) {
-						FbxTexture* lTexture = lProperty.GetSrcObject<FbxTexture>(j);
+						FbxFileTexture* lTexture = lProperty.GetSrcObject<FbxFileTexture>(j);
+						string temp = lTexture->GetRelativeFileName();
+						
 						if (lTexture)
 						{
 							nrOfTextures++;
+
 						}
 					}
 				}
