@@ -31,7 +31,7 @@
 // MM: The outcommented functions are not used right now, but may be needed at a later point.
 //string PrintControlsPoints(FbxMesh* pMesh);
 string PrintPolygons(FbxMesh* pMesh, string meshName);
-void GetPolygons(FbxMesh* pMesh, Mesh* mesh);
+void GetPolygons(FbxMesh* pMesh, MeshHolder* mesh);
 //string PrintMaterialMapping(FbxMesh* pMesh);
 //void PrintTextureMapping(FbxMesh* pMesh);
 //void PrintTextureNames(FbxProperty &pProperty, FbxString& pConnectionString);
@@ -410,22 +410,29 @@ string PrintPolygons(FbxMesh* pMesh, string meshName)
 	return pString;
 }
 
-void GetMesh(FbxNode* pNode, Mesh* mesh, vector<PhongMaterial2>& materials)
+void GetMesh(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& materials)
 {
 	FbxMesh* fbxMesh = (FbxMesh*)pNode->GetNodeAttribute();
 
 	// Applies the mesh name
-	mesh->name = pNode->GetName();
+	int nameLength = (int)strlen(pNode->GetName());
+	string nameBuffer = pNode->GetName();
+	for (int j = 0; j < nameLength; j++)
+	{
+		mesh->name[j] = nameBuffer[j];
+	}
+	mesh->name[nameLength] = '\0';
+	// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
+
 
 	//pString += PrintControlsPoints(pMesh);
-
 	GetPolygons(fbxMesh, mesh);
 	PrintMaterial(fbxMesh, materials, mesh);	// MM: Textures are called to be printed from PrintMaterial
 	DisplayUserProperties(pNode, mesh);
 	
 }
 
-void GetPolygons(FbxMesh* fbxMesh, Mesh* mesh)
+void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 {
 	int i, j, lPolygonCount = fbxMesh->GetPolygonCount();
 	FbxVector4* lControlPoints = fbxMesh->GetControlPoints();

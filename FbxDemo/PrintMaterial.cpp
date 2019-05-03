@@ -17,6 +17,166 @@
 ========================================================================================================================
 */
 
+void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHolder* mesh)
+{
+	int materialCount = 0;
+	FbxNode* materialNode = NULL;
+
+	PhongMaterial2 *materials = nullptr;
+
+	if (pGeometry) 
+	{
+		materialNode = pGeometry->GetNode();
+		if (materialNode) 
+		{
+			materialCount = materialNode->GetMaterialCount();
+
+			// MM: Allocates memory for the materials array, based on how many materials are to be read
+			materials = new PhongMaterial2[materialCount];
+		}
+	}
+
+	if (materialCount > 0)
+	{
+		FbxPropertyT<FbxDouble3> lKFbxDouble3;
+		FbxPropertyT<FbxDouble> lKFbxDouble1;
+		FbxColor theColor;
+
+		for (int matIndex = 0; matIndex < materialCount; matIndex++)
+		{
+			FbxSurfaceMaterial *lMaterial = materialNode->GetMaterial(matIndex);
+
+			// Applies the material name
+			int nameLength = (int)strlen(lMaterial->GetName());
+			string nameBuffer = lMaterial->GetName();
+			for (int j = 0; j < nameLength; j++)
+			{
+				materials[matIndex].name[j] = nameBuffer[j];
+			}
+			materials[matIndex].name[nameLength] = '\0';
+			// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
+
+			if (lMaterial->GetClassId().Is(FbxSurfacePhong::ClassId))
+			{
+				// We found a Phong material.  Display its properties.
+
+				// Print the Ambient Color
+				lKFbxDouble3 = ((FbxSurfacePhong *)lMaterial)->Ambient;
+				theColor.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
+
+				materials[matIndex].ambient[0] = (float)lKFbxDouble3.Get()[0];
+				materials[matIndex].ambient[1] = (float)lKFbxDouble3.Get()[1];
+				materials[matIndex].ambient[2] = (float)lKFbxDouble3.Get()[2];
+
+				// Print the Diffuse Color
+				lKFbxDouble3 = ((FbxSurfacePhong *)lMaterial)->Diffuse;
+				theColor.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
+
+				materials[matIndex].diffuse[0] = (float)lKFbxDouble3.Get()[0];
+				materials[matIndex].diffuse[1] = (float)lKFbxDouble3.Get()[1];
+				materials[matIndex].diffuse[2] = (float)lKFbxDouble3.Get()[2];
+
+				// Print the Specular Color (unique to Phong materials)
+				lKFbxDouble3 = ((FbxSurfacePhong *)lMaterial)->Specular;
+				theColor.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
+
+				materials[matIndex].specular[0] = (float)lKFbxDouble3.Get()[0];
+				materials[matIndex].specular[1] = (float)lKFbxDouble3.Get()[1];
+				materials[matIndex].specular[2] = (float)lKFbxDouble3.Get()[2];
+
+				// Print the Emissive Color
+				lKFbxDouble3 = ((FbxSurfacePhong *)lMaterial)->Emissive;
+				theColor.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
+
+				materials[matIndex].emissive[0] = (float)lKFbxDouble3.Get()[0];
+				materials[matIndex].emissive[1] = (float)lKFbxDouble3.Get()[1];
+				materials[matIndex].emissive[2] = (float)lKFbxDouble3.Get()[2];
+
+				//Opacity is Transparency factor now
+				lKFbxDouble1 = ((FbxSurfacePhong *)lMaterial)->TransparencyFactor;
+				materials[matIndex].opacity = (float)lKFbxDouble1.Get();
+
+				// -- GETTING THE NUMBER OF TEXTURES FOR THE MATERIAL --
+				FbxProperty lProperty;
+				int lTextureCount = 0;
+				int nrOfTextures = 0;
+				//int run = 0;
+				int lTextureIndex;
+				FBXSDK_FOR_EACH_TEXTURE(lTextureIndex)
+				{
+					lProperty = lMaterial->FindProperty(FbxLayerElement::sTextureChannelNames[lTextureIndex]);
+					//run++;
+					lTextureCount = lProperty.GetSrcObjectCount<FbxTexture>();
+					for (int j = 0; j < lTextureCount; j++) {
+						FbxTexture* lTexture = lProperty.GetSrcObject<FbxTexture>(j);
+						if (lTexture)
+						{
+							nrOfTextures++;
+						}
+					}
+				}
+				//cout << "Run: " << run << endl;
+
+			}
+			else
+				cout << PrintString("Unknown type of Material") << endl;
+
+		}
+	}
+
+
+	// Checks if the material already exists in the vector
+	bool nameExists = false;
+	for (int i = 0; i < materialCount; i++)
+	{
+		for (int j = 0; j < mats.size(); j++)
+		{
+			if ((string)mats[j].name == (string)materials[i].name)
+			{
+				nameExists = true;
+			}
+		}
+
+		if (!nameExists)
+		{
+			mats.push_back(materials[i]);
+			for (int j = 0; j < strlen(materials[i].name); j++)
+			{
+				mesh->materialName[j] = materials[i].name[j];
+				mesh->materialName[strlen(materials[i].name)] = '\0';
+			}
+		}
+		else
+		{
+			for (int j = 0; j < strlen(materials[i].name); j++)
+			{
+				mesh->materialName[j] = materials[i].name[j];
+				mesh->materialName[strlen(materials[i].name)] = '\0';
+			}
+			nameExists = false;
+		}
+	}
+
+	// Special case for the first material
+	if (materialCount && mats.size() == 0)
+	{
+		mats.push_back(materials[0]);
+		for (int j = 0; j < strlen(materials[0].name); j++)
+		{
+			mesh->materialName[j] = materials[0].name[j];
+			mesh->materialName[strlen(materials[0].name)] = '\0';
+		}
+	}
+		
+
+
+	if (materials)
+	{
+		delete[] materials;
+	}
+}
+
+
 string PrintMaterial(FbxGeometry* pGeometry)
 {
 	int lMaterialCount = 0;
@@ -351,159 +511,4 @@ string PrintMaterial(FbxGeometry* pGeometry)
 	}
 
 	return pString;
-}
-
-void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, Mesh* mesh)
-{
-	int materialCount = 0;
-	FbxNode* materialNode = NULL;
-
-	PhongMaterial2 *materials = nullptr;
-
-	if (pGeometry) 
-	{
-		materialNode = pGeometry->GetNode();
-		if (materialNode) 
-		{
-			materialCount = materialNode->GetMaterialCount();
-			// pString += "Material Count: " + to_string(lMaterialCount) + "\n";
-			// MM: Printing how many materials exist for the mesh
-			// binFile.write((char*)&lMaterialCount, sizeof(int));
-			// MM: material count is printed in PrintMesh->PrintPolygons instead of here in order to print at the top of the mesh
-			// MM: Allocates memory for the materials array, based on how many materials are to be read
-			materials = new PhongMaterial2[materialCount];
-		}
-	}
-
-	if (materialCount > 0)
-	{
-		FbxPropertyT<FbxDouble3> lKFbxDouble3;
-		FbxPropertyT<FbxDouble> lKFbxDouble1;
-		FbxColor theColor;
-
-		for (int lCount = 0; lCount < materialCount; lCount++)
-		{
-			FbxSurfaceMaterial *lMaterial = materialNode->GetMaterial(lCount);
-
-			// MM: Printing the material name			
-			// Applies the name
-			materials[lCount].name = lMaterial->GetName();
-
-			if (lMaterial->GetClassId().Is(FbxSurfacePhong::ClassId))
-			{
-				// We found a Phong material.  Display its properties.
-
-				// Print the Ambient Color
-				lKFbxDouble3 = ((FbxSurfacePhong *)lMaterial)->Ambient;
-				theColor.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
-
-				materials[lCount].ambient[0] = (float)lKFbxDouble3.Get()[0];
-				materials[lCount].ambient[1] = (float)lKFbxDouble3.Get()[1];
-				materials[lCount].ambient[2] = (float)lKFbxDouble3.Get()[2];
-
-				// Print the Diffuse Color
-				lKFbxDouble3 = ((FbxSurfacePhong *)lMaterial)->Diffuse;
-				theColor.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
-
-				materials[lCount].diffuse[0] = (float)lKFbxDouble3.Get()[0];
-				materials[lCount].diffuse[1] = (float)lKFbxDouble3.Get()[1];
-				materials[lCount].diffuse[2] = (float)lKFbxDouble3.Get()[2];
-
-				// Print the Specular Color (unique to Phong materials)
-				lKFbxDouble3 = ((FbxSurfacePhong *)lMaterial)->Specular;
-				theColor.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
-
-				materials[lCount].specular[0] = (float)lKFbxDouble3.Get()[0];
-				materials[lCount].specular[1] = (float)lKFbxDouble3.Get()[1];
-				materials[lCount].specular[2] = (float)lKFbxDouble3.Get()[2];
-
-				// Print the Emissive Color
-				lKFbxDouble3 = ((FbxSurfacePhong *)lMaterial)->Emissive;
-				theColor.Set(lKFbxDouble3.Get()[0], lKFbxDouble3.Get()[1], lKFbxDouble3.Get()[2]);
-
-				materials[lCount].emissive[0] = (float)lKFbxDouble3.Get()[0];
-				materials[lCount].emissive[1] = (float)lKFbxDouble3.Get()[1];
-				materials[lCount].emissive[2] = (float)lKFbxDouble3.Get()[2];
-
-				//Opacity is Transparency factor now
-				lKFbxDouble1 = ((FbxSurfacePhong *)lMaterial)->TransparencyFactor;
-				materials[lCount].opacity = (float)lKFbxDouble1.Get();
-
-				// Print the Shininess
-				lKFbxDouble1 = ((FbxSurfacePhong *)lMaterial)->Shininess;
-				materials[lCount].shininess = (float)lKFbxDouble1.Get();
-
-				// Print the Reflectivity
-				lKFbxDouble1 = ((FbxSurfacePhong *)lMaterial)->ReflectionFactor;
-				materials[lCount].reflectivity = (float)lKFbxDouble1.Get();
-
-
-				// -- GETTING THE NUMBER OF TEXTURES FOR THE MATERIAL --
-				FbxProperty lProperty;
-				int lTextureCount = 0;
-				int nrOfTextures = 0;
-				//int run = 0;
-				int lTextureIndex;
-				FBXSDK_FOR_EACH_TEXTURE(lTextureIndex)
-				{
-					lProperty = lMaterial->FindProperty(FbxLayerElement::sTextureChannelNames[lTextureIndex]);
-					//run++;
-					lTextureCount = lProperty.GetSrcObjectCount<FbxTexture>();
-					for (int j = 0; j < lTextureCount; j++) {
-						FbxTexture* lTexture = lProperty.GetSrcObject<FbxTexture>(j);
-						if (lTexture)
-						{
-							nrOfTextures++;
-						}
-					}
-				}
-				//cout << "Run: " << run << endl;
-
-				materials[lCount].nrOfTextures = nrOfTextures;
-			}
-			else
-				cout << PrintString("Unknown type of Material") << endl;
-
-		}
-	}
-
-
-	// Checks if the material already exists in the vector
-	bool nameExists = false;
-	for (int i = 0; i < materialCount; i++)
-	{
-		for (int j = 0; j < mats.size(); j++)
-		{
-			if (mats[j].name == materials[i].name)
-			{
-				nameExists = true;
-			}
-		}
-
-		if (!nameExists)
-		{
-			mats.push_back(materials[i]);
-			mesh->materialNames.push_back(materials[i].name);
-		}
-		else
-		{
-			mesh->materialNames.push_back(materials[i].name);
-			nameExists = false;
-		}
-	}
-
-	// Special case for the first material
-	if (materialCount && mats.size() == 0)
-	{
-		mats.push_back(materials[0]);
-		mesh->materialNames.push_back(materials[0].name);
-	}
-		
-	
-
-
-	if (materials)
-	{
-		delete[] materials;
-	}
 }

@@ -35,8 +35,8 @@ const std::string ASCII_FILE = "Exported_Files/xTestAscii.txt";
 const std::string BINARY_FILE = "Exported_Files/xTestBinary.bin";
 const std::string IN_FBX_FILEPATH = "FBX_Files/Boxes.fbx";
 
-const std::string ASCII2_FILE = "Exported_Files/Level1ASCII.txt";
-const std::string BINARY2_FILE = "Exported_Files/Level1[Culled].meh";
+const std::string ASCII2_FILE = "Exported_Files/RoomTestASCII.txt";
+const std::string BINARY2_FILE = "Exported_Files/RoomTest.meh";
 //const std::string IN_FBX_FILEPATH = "FBX_Files/LevelTest.fbx";
 
 // MM: Standard names, in case you mess them up too much
@@ -58,15 +58,15 @@ struct PhongMaterial
 
 struct PhongMaterial2
 {
-	string name;
+	char name[256];
 	float ambient[3];
 	float diffuse[3];
 	float specular[3];
 	float emissive[3];
 	float opacity;
-	float shininess;
-	float reflectivity;
-	int nrOfTextures;
+
+	char albedo[256];
+	char normal[256];
 };
 
 struct GeoTransformations
@@ -87,12 +87,21 @@ struct Vertex
 
 struct Mesh
 {
-	string name;
-	vector<string> materialNames;
-	vector<Mesh> children;
+	char name[256];
+	char materialName[256];
+	//char childName;
 
 	int type;
 	int link;
+
+	int vertexCount;
+};
+
+struct MeshHolder
+{
+	char name[256];
+	char materialName[256];
+	vector<MeshHolder> children;
 
 	// Might make this into a vector
 	//vector<Vertex> vertices;
@@ -100,7 +109,7 @@ struct Mesh
 	Vertex* vertices;
 
 	// Constructor that may not be needed
-	Mesh()
+	MeshHolder()
 	{
 		vertices = nullptr;
 	}
