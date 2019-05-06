@@ -216,7 +216,6 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHol
 	}
 		
 
-
 	if (materials)
 	{
 		delete[] materials;

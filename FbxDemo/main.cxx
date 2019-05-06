@@ -41,7 +41,7 @@ using namespace std;
 #pragma comment(lib,"zlib-mt.lib")
 
 // Local function prototypes.
-void PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats);
+int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats);
 void DisplayTarget(FbxNode* pNode);
 void DisplayTransformPropagation(FbxNode* pNode);
 string PrintGeometricTransform(FbxNode* pNode);
@@ -113,9 +113,20 @@ int main(int argc, char** argv)
 	{
 		for (int i = 0; i < elementCount; i++)
 		{
+			
 			MeshHolder fillMesh;
-			PrintContent(sceneRootNode->GetChild(i), &fillMesh, materials);
-			meshes.push_back(fillMesh);
+			int type = PrintContent(sceneRootNode->GetChild(i), &fillMesh, materials);
+
+			if (type == 1)
+			{
+				meshes.push_back(fillMesh);
+			}
+				
+			if (type == 2)
+			{
+				// Do something
+			}
+				
 		}
 	}
 
@@ -210,7 +221,7 @@ int main(int argc, char** argv)
 		asciiFile2 << materials[i].name << endl;	//* Binary data
 
 		// 2 Material data
-		asciiFile2 << "  # Ambient, diffuse, specular, emissive, opacity" << "[(float) * 15]" << endl;
+		asciiFile2 << "  # Ambient, diffuse, specular, emissive, opacity" << "[(float) * 13]" << endl;
 		//*v Binary data
 		asciiFile2 << (float)materials[i].ambient[0] << ", " << (float)materials[i].ambient[1] << ", " << (float)materials[i].ambient[2] << endl;
 		asciiFile2 << (float)materials[i].diffuse[0] << ", " << (float)materials[i].diffuse[1] << ", " << (float)materials[i].diffuse[2] << endl;
@@ -219,11 +230,9 @@ int main(int argc, char** argv)
 		asciiFile2 << (float)materials[i].opacity << endl;
 		//*^ Binary data
 
-
 		// 3 Albedo filename
 		asciiFile2 << "  # Albedo name [(char) * 256]: " << endl;
 		asciiFile2 << materials[i].albedo << endl;	//* Binary data
-
 
 		// 4 Normal filename
 		asciiFile2 << "  # Normal name [(char) * 256]: " << endl;
@@ -286,11 +295,12 @@ int main(int argc, char** argv)
 ========================================================================================================================
 */
 
-void PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats)
+int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats)
 {
 	// This will check what type this node is
 	// All the cases represent the different types
 	FbxNodeAttribute::EType lAttributeType;
+	int type = 0;
 
 	if (pNode->GetNodeAttribute() == NULL)
 	{
@@ -319,6 +329,7 @@ void PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats
 			// We could utilize this in the vector and only push back things we know are meshes once we aquire them
 			// Alternatively extract this from the swtich case since this is a template for printing information to 
 			// the command prompt with no regards to format or similar
+			type = 1;
 			GetMesh(pNode, mesh, mats);
 			break;
 
@@ -335,6 +346,7 @@ void PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats
 			break;
 
 		case FbxNodeAttribute::eLight:
+			type = 2;
 			//DisplayLight(pNode);
 			//PrintLight(pNode);
 			break;
@@ -360,6 +372,9 @@ void PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats
 
 		mesh->children.push_back(fillMesh);
 	}
+
+
+	return type;
 }
 
 
