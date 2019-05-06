@@ -98,22 +98,43 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHol
 
 				// -- GETTING THE NUMBER OF TEXTURES FOR THE MATERIAL --
 				FbxProperty lProperty;
+				FbxDataType lTexProperty;
 				int lTextureCount = 0;
 				int nrOfTextures = 0;
 				//int run = 0;
-				int lTextureIndex;
+				int lTextureIndex = 0;
 				FBXSDK_FOR_EACH_TEXTURE(lTextureIndex)
 				{
 					lProperty = lMaterial->FindProperty(FbxLayerElement::sTextureChannelNames[lTextureIndex]);
 					//run++;
+					
 					lTextureCount = lProperty.GetSrcObjectCount<FbxTexture>();
-					for (int j = 0; j < lTextureCount; j++) {
-						FbxTexture* lTexture = lProperty.GetSrcObject<FbxTexture>(j);
-						if (lTexture)
+					
+					FbxFileTexture* lTexture = lProperty.GetSrcObject<FbxFileTexture>(0);
+					if (lTexture && lTextureIndex == 0)
+					{
+						string fileName = lTexture->GetRelativeFileName();
+					
+						for (int j = 0; j < strlen(fileName.c_str()); j++)
 						{
-							nrOfTextures++;
+							materials[matIndex].albedo[j] = fileName[j];
+							materials[matIndex].albedo[strlen(fileName.c_str())] = '\0';
 						}
+						
 					}
+					//lTexture = lProperty.Get;
+					if (lTexture && lTextureIndex == 9)
+					{
+						string fileName = lTexture->GetRelativeFileName();
+
+						for (int j = 0; j < strlen(fileName.c_str()); j++)
+						{
+							materials[matIndex].normal[j] = fileName[j];
+							materials[matIndex].normal[strlen(fileName.c_str())] = '\0';
+						}
+
+					}
+
 				}
 				//cout << "Run: " << run << endl;
 

@@ -248,11 +248,13 @@ int main(int argc, char** argv)
 
 
 		// 3 Albedo filename
-
+		asciiFile2 << "  # Albedo name [(char) * 256]: " << endl;
+		asciiFile2 << materials[i].albedo << endl;	//* Binary data
 
 
 		// 4 Normal filename
-
+		asciiFile2 << "  # Normal name [(char) * 256]: " << endl;
+		asciiFile2 << materials[i].normal << endl;	//* Binary data
 
 
 	}
@@ -263,9 +265,9 @@ int main(int argc, char** argv)
 
 	// - 1 File Header
 	int meshAmount = (unsigned int)meshData.size();
-	binFile2.write((char*)&meshAmount, sizeof(int));
+	binFile2.write((char*)&meshAmount, sizeof(unsigned int));
 	int materialAmount = (unsigned int)materials.size();
-	binFile2.write((char*)&materialAmount, sizeof(int));
+	binFile2.write((char*)&materialAmount, sizeof(unsigned int));
 
 	// - 2 Meshes
 	for (int i = 0; i < meshAmount; i++)
@@ -449,7 +451,7 @@ string PrintContent(FbxNode* pNode)
 
         case FbxNodeAttribute::eCamera:    
             //DisplayCamera(pNode);
-            break;
+			break;
 
         case FbxNodeAttribute::eLight:     
             //DisplayLight(pNode);

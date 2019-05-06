@@ -1,5 +1,5 @@
 #include "PrintMesh.h"
-
+#include "DisplayCommon.h"
 
 //#define MAT_HEADER_LENGTH 200
 
@@ -428,6 +428,7 @@ void GetMesh(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& materials
 	//pString += PrintControlsPoints(pMesh);
 	GetPolygons(fbxMesh, mesh);
 	PrintMaterial(fbxMesh, materials, mesh);	// MM: Textures are called to be printed from PrintMaterial
+	DisplayUserProperties(pNode, mesh);
 	
 }
 
@@ -704,9 +705,90 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 	mesh->vertexCount = vtxCount;
 	memcpy(mesh->vertices, vertices, sizeof(float) * 14 * vtxCount);
 
+
 	// MM: Delete the allocated memory for vertices
 	if (vertices)
 		delete[] vertices;
+}
+
+/*
+========================================================================================================================
+This function loops through an FbxObjects properties. Which is the custom attributes added in Maya.
+
+First setting "Type" and "Link" in the Meshholder to 0;
+Loops through each property.
+If the property is an int, (eFbxInt)
+then it checks if the name of the property is "Type" or "Link"
+Then retrives the information and stores it.
+========================================================================================================================
+*/
+void DisplayUserProperties(FbxObject* pObject, MeshHolder* mesh)
+{
+	int lCount = 0;
+	FbxString lTitleStr = "    Property Count: ";
+
+	FbxProperty lProperty = pObject->GetFirstProperty();
+	while (lProperty.IsValid())
+	{
+		if (lProperty.GetFlag(FbxPropertyFlags::eUserDefined))
+			lCount++;
+
+		lProperty = pObject->GetNextProperty(lProperty);
+	}
+
+	if (lCount == 0)
+		return; // there are no user properties to display
+
+	DisplayInt(lTitleStr.Buffer(), lCount);
+
+	mesh->type = 0;
+	mesh->link = 0;
+
+	lProperty = pObject->GetFirstProperty();
+	int i = 0;
+	while (lProperty.IsValid())
+	{
+		if (lProperty.GetFlag(FbxPropertyFlags::eUserDefined))
+		{
+			DisplayInt("        Property ", i);
+			FbxString lString = lProperty.GetLabel();
+			DisplayString("            Display Name: ", lString.Buffer());
+			lString = lProperty.GetName();
+			DisplayString("            Internal Name: ", lString.Buffer());
+			DisplayString("            Type: ", lProperty.GetPropertyDataType().GetName());
+			if (lProperty.HasMinLimit()) DisplayDouble("            Min Limit: ", lProperty.GetMinLimit());
+			if (lProperty.HasMaxLimit()) DisplayDouble("            Max Limit: ", lProperty.GetMaxLimit());
+			DisplayBool("            Is Animatable: ", lProperty.GetFlag(FbxPropertyFlags::eAnimatable));
+
+			FbxDataType lPropertyDataType = lProperty.GetPropertyDataType();
+
+			// INTEGER
+			if (lPropertyDataType.GetType() == eFbxInt)
+			{
+				DisplayInt("            Default Value: ", lProperty.Get<FbxInt>());
+
+				if (lProperty.GetName() == "Type")
+				{
+					DisplayString("            Found: Type ");
+					mesh->type = lProperty.Get<FbxInt>();
+				}
+
+				if (lProperty.GetName() == "Link")
+				{
+					DisplayString("            Found: Link ");
+					mesh->link = lProperty.Get<FbxInt>();
+				}
+			}
+			// UNIDENTIFIED
+			else
+			{
+				DisplayString("            Default Value: UNIDENTIFIED");
+			}
+			i++;
+		}
+
+		lProperty = pObject->GetNextProperty(lProperty);
+	}
 }
 
 //string PrintMaterialMapping(FbxMesh* pMesh)
