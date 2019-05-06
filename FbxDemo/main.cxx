@@ -9,26 +9,13 @@
 
 ****************************************************************************************/
 
-/////////////////////////////////////////////////////////////////////////
-//
-// This example illustrates how to detect if a scene is password 
-// protected, import and browse the scene to access node and animation 
-// information. It displays the content of the FBX file which name is 
-// passed as program argument. You can try it with the various FBX files 
-// output by the export examples.
-//
-/////////////////////////////////////////////////////////////////////////
 
-// =====================================================================================================================
-// =====================================================================================================================
 /*
 ========================================================================================================================
 
 	This is the main file of the FBX to Custom Binary Converter for Group 3 in UD1446: Small Game Project
 
 	To decide the filenames for output, see Filenames.h
-
-	**PLEASE, DO NOT REMOVE OUT-COMMENTED CODE UNLESS YOU ARE 120% SURE IT WILL NOT USE IT IN THE FUTURE**
 
 	// Martina Molid
 
@@ -37,25 +24,8 @@
 
 // MM: The Common.h include has a lot of the FBX SDK defined functions and types like FBXSDK_printf
 #include "../Common/Common.h"
-//#include "DisplayCommon.h"
-//#include "DisplayHierarchy.h"
-//#include "DisplayAnimation.h"
-//#include "DisplayMarker.h"
-//#include "DisplaySkeleton.h"
-//#include "DisplayMesh.h"
-//#include "DisplayNurb.h"
-//#include "DisplayPatch.h"
-//#include "DisplayLodGroup.h"
-//#include "DisplayCamera.h"
-//#include "DisplayLight.h"
-//#include "DisplayGlobalSettings.h"
-//#include "DisplayPose.h"
-//#include "DisplayPivotsAndLimits.h"
-//#include "DisplayUserProperties.h"
-//#include "DisplayGenericInfo.h"
 
 #include "Filenames.h"
-
 #include "PrintMesh.h"
 #include "PrintNrOfMeshes.h"
 #include "PrintLight.h"
@@ -71,14 +41,11 @@ using namespace std;
 #pragma comment(lib,"zlib-mt.lib")
 
 // Local function prototypes.
-string PrintContent(FbxScene* pScene);
-string PrintContent(FbxNode* pNode);
 void PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats);
 void DisplayTarget(FbxNode* pNode);
 void DisplayTransformPropagation(FbxNode* pNode);
 string PrintGeometricTransform(FbxNode* pNode);
 void DisplayMetaData(FbxScene* pScene);
-
 
 
 static bool gVerbose = true;
@@ -110,10 +77,6 @@ int main(int argc, char** argv)
 		lResult = LoadScene(lSdkManager, fileScene, lFilePath.Buffer());
         //lResult = false;
 	}
-
-	// ASCII FILE OPENING _ TO BE MOVED
-	//ofstream asciiFile;
-	//asciiFile.open(ASCII_FILE);	// MM: Opens the ASCII file to write the ASCII strings to
 
 	/*
 	========================================================================================================================
@@ -186,7 +149,7 @@ int main(int argc, char** argv)
 	// This should be in 100% sync with what is printed to the binary file at all times for debugging to be accurate.
 	// Everything noted as Binary data is what is written to the binary file. Everything else are comments or debug information.
 	ofstream asciiFile2;
-	asciiFile2.open(ASCII2_FILE);	// MM: Opens the ASCII file to write the ASCII strings to
+	asciiFile2.open(ASCII_FILE);	// MM: Opens the ASCII file to write the ASCII strings to
 	asciiFile2 << fixed << setprecision(5) ;
 
 	// - 1 File header
@@ -271,7 +234,7 @@ int main(int argc, char** argv)
 	asciiFile2.close();
 
 	// Binary file
-	ofstream binFile2(BINARY2_FILE, ofstream::binary);
+	ofstream binFile2(BINARY_FILE, ofstream::binary);
 
 	// - 1 File Header
 	int meshAmount = (unsigned int)meshData.size();
@@ -284,19 +247,14 @@ int main(int argc, char** argv)
 	{
 		// --- MM: Getting, formatting and printing mesh name ---
 
-		//// 1 Mesh name
-		//binFile2.write((char*)meshes[i].name, sizeof(char) * NAME_SIZE);
-
-		//// 2 Material name
-		//binFile2.write((char*)&meshes[i].materialName, sizeof(char) * NAME_SIZE);
-
+		// 1 Mesh header
 		binFile2.write((char*)&meshData[i], sizeof(Mesh));
 
-		// 3 Vertex count
+		// 2 Vertex count
 		unsigned int vtxCount = meshData[i].vertexCount;
 		binFile2.write((char*)&vtxCount, sizeof(unsigned int));
 
-		// 4 Vertex data (pos, uv, norm, tangent, bitangent)
+		// 3 Vertex data (pos, uv, norm, tangent, bitangent)
 		binFile2.write((char*)meshes[i].vertices, sizeof(Vertex) * vtxCount);
 	}
 
@@ -305,83 +263,8 @@ int main(int argc, char** argv)
 	{
 
 		binFile2.write((char*)&materials[i], sizeof(PhongMaterial2));
-
-		//// 1 Material index
-		//binFile2.write((char*)&i, sizeof(int));
-
-		//// Size: 256 * char
-		//int nameLength = (int)strlen(meshes[i].name.c_str());
-		//char finalMaterialName[NAME_SIZE];
-		//for (int j = 0; j < nameLength; j++)
-		//{
-		//	finalMaterialName[j] = materials[i].name[j];
-		//}
-		//finalMaterialName[nameLength] = '\0'; // Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
-
-		//// 2 Material names
-		//binFile2.write((char*)&finalMaterialName, sizeof(char) * NAME_SIZE);
-
-		//// 3 Material data
-		//binFile2.write((char*)&materials[i].ambient, sizeof(float) * 3);
-		//binFile2.write((char*)&materials[i].diffuse, sizeof(float) * 3);
-		//binFile2.write((char*)&materials[i].specular, sizeof(float) * 3);
-		//binFile2.write((char*)&materials[i].emissive, sizeof(float) * 3);
 	}
 	binFile2.close();
-
-
-
-	// --------------------------------------
-    if(lResult == false)
-    {
-        FBXSDK_printf("\n\nAn error occurred while loading the scene...");
-    }
-    else 
-    {
-        // Display the scene.
-        //DisplayMetaData(lScene);
-
-        //FBXSDK_printf("\n\n---------------------\nGlobal Light Settings\n---------------------\n\n");
-
-        //if( gVerbose ) //DisplayGlobalLightSettings(&lScene->GetGlobalSettings());
-
-        //FBXSDK_printf("\n\n----------------------\nGlobal Camera Settings\n----------------------\n\n");
-
-        //if( gVerbose ) //DisplayGlobalCameraSettings(&lScene->GetGlobalSettings());
-
-        //FBXSDK_printf("\n\n--------------------\nGlobal Time Settings\n--------------------\n\n");
-
-        //if( gVerbose ) //DisplayGlobalTimeSettings(&lScene->GetGlobalSettings());
-
-        //FBXSDK_printf("\n\n---------\nHierarchy\n---------\n\n");
-
-			// TO BE DELETED - OLD WAY TO GET ELEMENTS
-		//if (gVerbose) asciiFile << PrintNrOfMeshes(fileScene);//PrintHierarchy(lScene); // MM: Prints how many meshes exists in the FBX file
-
-        //FBXSDK_printf("\n\n------------\nNode Content\n------------\n\n");
-
-			
-       // if( gVerbose ) asciiFile << PrintContent(fileScene);	// MM: Prints node content, currently only meshes ( see below )
-
-        //FBXSDK_printf("\n\n----\nPose\n----\n\n");
-
-        //if( gVerbose ) //DisplayPose(lScene);
-
-        //FBXSDK_printf("\n\n---------\nAnimation\n---------\n\n");
-
-        //if( gVerbose ) //DisplayAnimation(lScene);
-
-        //now display generic information
-
-        //FBXSDK_printf("\n\n---------\nGeneric Information\n---------\n\n");
-		// if( gVerbose ) {//DisplayGenericInfo(lScene);
-		//}
-
-    }
-
-	// ASCII FILE OPENING _ TO BE MOVED
-	//asciiFile.close();
-
 
 
     // Destroy all objects created by the FBX SDK.
@@ -402,93 +285,6 @@ int main(int argc, char** argv)
 
 ========================================================================================================================
 */
-string PrintContent(FbxScene* pScene)
-{
-    FbxNode* lNode = pScene->GetRootNode();
-
-	string pString;
-
-    if(lNode)
-    {
-        for(int i = 0; i < lNode->GetChildCount(); i++)
-        {
-            pString += PrintContent(lNode->GetChild(i));
-        }
-    }
-
-	return pString;
-}
-
-string PrintContent(FbxNode* pNode)
-{
-    FbxNodeAttribute::EType lAttributeType;
-    int i;
-
-	string pString;
-
-    if(pNode->GetNodeAttribute() == NULL)
-    {
-        FBXSDK_printf("NULL Node Attribute\n\n");
-    }
-    else
-    {
-        lAttributeType = (pNode->GetNodeAttribute()->GetAttributeType());
-
-        switch (lAttributeType)
-        {
-	    default:
-	        break;
-        case FbxNodeAttribute::eMarker:  
-            //DisplayMarker(pNode);
-            break;
-
-        case FbxNodeAttribute::eSkeleton:  
-            //DisplaySkeleton(pNode);
-            break;
-
-        case FbxNodeAttribute::eMesh:      
-            //DisplayMesh(pNode);
-			pString += PrintMesh(pNode);
-            break;
-
-        case FbxNodeAttribute::eNurbs:      
-            //DisplayNurb(pNode);
-            break;
-
-        case FbxNodeAttribute::ePatch:     
-            //DisplayPatch(pNode);
-            break;
-
-        case FbxNodeAttribute::eCamera:    
-            //DisplayCamera(pNode);
-			break;
-
-        case FbxNodeAttribute::eLight:     
-            //DisplayLight(pNode);
-			pString += PrintLight(pNode);
-            break;
-
-        case FbxNodeAttribute::eLODGroup:
-            //DisplayLodGroup(pNode);
-            break;
-        }   
-    }
-
-    /*DisplayUserProperties(pNode);
-    DisplayTarget(pNode);
-    DisplayPivotsAndLimits(pNode);
-    DisplayTransformPropagation(pNode);*/
-    //pString += PrintGeometricTransform(pNode);
-
-    for(i = 0; i < pNode->GetChildCount(); i++)
-    {
-        pString += PrintContent(pNode->GetChild(i));
-		
-    }
-
-	return pString;
-}
-
 
 void PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats)
 {

@@ -152,21 +152,3 @@ string PrintColor(const char* pHeader, FbxColor pValue)
 	return lString;
 }
 
-//string PrintColor(const char* pHeader, FbxPropertyT<FbxDouble3> pValue)
-//{
-//	// THIS SHOULD PROBABLY BE REMOVED, IT SEEMS USELESS
-//	string lString;
-//
-//	lString = pHeader;
-//	//lString += (float) pValue.mRed;
-//	//lString += (double)pValue.GetArrayItem(0);
-//	lString += " (red), ";
-//	//lString += (float) pValue.mGreen;
-//	//lString += (double)pValue.GetArrayItem(1);
-//	lString += " (green), ";
-//	//lString += (float) pValue.mBlue;
-//	//lString += (double)pValue.GetArrayItem(2);
-//	lString += " (blue)";
-//	lString += "\n";
-//	return lString;
-//}

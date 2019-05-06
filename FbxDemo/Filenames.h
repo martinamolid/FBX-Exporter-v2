@@ -31,30 +31,9 @@ using namespace std;
 
 #define NAME_SIZE 256
 
-const std::string ASCII_FILE = "Exported_Files/xTestAscii.txt";
-const std::string BINARY_FILE = "Exported_Files/xTestBinary.bin";
 const std::string IN_FBX_FILEPATH = "FBX_Files/RoomTest.fbx";
-
-const std::string ASCII2_FILE = "Exported_Files/RoomTestASCII.txt";
-const std::string BINARY2_FILE = "Exported_Files/RoomTest.meh";
-//const std::string IN_FBX_FILEPATH = "FBX_Files/LevelTest.fbx";
-
-// MM: Standard names, in case you mess them up too much
-//const std::string ASCII_FILE = "Exported_Files/xTestAscii.txt";
-//const std::string BINARY_FILE = "Exported_Files/xTestBinary.bin";
-//const std::string IN_FBX_FILEPATH = "FBX_Files/cube.fbx";
-
-struct PhongMaterial 
-{
-	float ambient[3];
-	float diffuse[3];
-	float specular[3];
-	float emissive[3];
-	float opacity;
-	float shininess;
-	float reflectivity;
-	int nrOfTextures;
-};
+const std::string ASCII_FILE = "Exported_Files/RoomTestASCII.txt";
+const std::string BINARY_FILE = "Exported_Files/RoomTest.meh";
 
 struct PhongMaterial2
 {

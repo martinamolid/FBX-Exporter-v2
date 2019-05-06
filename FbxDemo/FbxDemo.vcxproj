@@ -92,13 +92,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Filenames.h" />
-    <ClInclude Include="FormatName.h" />
     <ClInclude Include="PrintLight.h" />
-    <ClInclude Include="PrintNrOfMeshes.h" />
     <ClInclude Include="PrintInfo.h" />
     <ClInclude Include="PrintMaterial.h" />
     <ClInclude Include="PrintMesh.h" />
-    <ClInclude Include="PrintTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\AnimationUtility.cxx">
@@ -174,14 +171,11 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="exporterImporterHeaders.cpp" />
-    <ClCompile Include="FormatName.cpp" />
     <ClCompile Include="main.cxx" />
     <ClCompile Include="PrintLight.cpp" />
-    <ClCompile Include="PrintNrOfMeshes.cpp" />
     <ClCompile Include="PrintInfo.cpp" />
     <ClCompile Include="PrintMaterial.cpp" />
     <ClCompile Include="PrintMesh.cpp" />
-    <ClCompile Include="PrintTexture.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

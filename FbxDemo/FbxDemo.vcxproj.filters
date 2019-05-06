@@ -99,19 +99,10 @@
     <ClInclude Include="PrintMaterial.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="PrintNrOfMeshes.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PrintTexture.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="Filenames.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="PrintLight.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FormatName.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -200,16 +191,7 @@
     <ClCompile Include="PrintMaterial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PrintNrOfMeshes.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PrintTexture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="PrintLight.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FormatName.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="exporterImporterHeaders.cpp">
