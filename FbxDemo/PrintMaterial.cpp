@@ -113,24 +113,50 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHol
 					FbxFileTexture* lTexture = lProperty.GetSrcObject<FbxFileTexture>(0);
 					if (lTexture && lTextureIndex == 0)
 					{
+						//================================================
+						//The following code gets the file name and edits
+						//it so that only the file name gets fetched
+						//================================================
 						string fileName = lTexture->GetRelativeFileName();
-					
-						for (int j = 0; j < strlen(fileName.c_str()); j++)
+						size_t pivotPos = 0;
+						for (int index = 0; index < strlen(fileName.c_str()); index++)
 						{
-							materials[matIndex].albedo[j] = fileName[j];
-							materials[matIndex].albedo[strlen(fileName.c_str())] = '\0';
+							char temp = fileName[index];
+							if (temp == '\\')
+								pivotPos = index;
+						}
+						string fileNameEd = fileName.substr(pivotPos+1, strlen(fileName.c_str()));
+
+						//Send string to struct
+						for (int j = 0; j < strlen(fileNameEd.c_str()); j++)
+						{
+							materials[matIndex].albedo[j] = fileNameEd[j];
+							materials[matIndex].albedo[strlen(fileNameEd.c_str())] = '\0';
 						}
 						
 					}
 					//lTexture = lProperty.Get;
 					if (lTexture && lTextureIndex == 9)
 					{
+						//================================================
+						//The following code gets the file name and edits
+						//it so that only the file name gets fetched
+						//================================================
 						string fileName = lTexture->GetRelativeFileName();
-
-						for (int j = 0; j < strlen(fileName.c_str()); j++)
+						size_t pivotPos = 0;
+						for (int index = 0; index < strlen(fileName.c_str()); index++)
 						{
-							materials[matIndex].normal[j] = fileName[j];
-							materials[matIndex].normal[strlen(fileName.c_str())] = '\0';
+							char temp = fileName[index];
+							if (temp == '\\')
+								pivotPos = index;
+						}
+						string fileNameEd = fileName.substr(pivotPos + 1, strlen(fileName.c_str()));
+
+						//Send string to struct
+						for (int j = 0; j < strlen(fileNameEd.c_str()); j++)
+						{
+							materials[matIndex].normal[j] = fileNameEd[j];
+							materials[matIndex].normal[strlen(fileNameEd.c_str())] = '\0';
 						}
 
 					}
