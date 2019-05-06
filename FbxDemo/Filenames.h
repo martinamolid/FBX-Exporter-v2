@@ -35,7 +35,14 @@ const std::string IN_FBX_FILEPATH = "FBX_Files/RoomTest.fbx";
 const std::string ASCII_FILE = "Exported_Files/RoomTestASCII.txt";
 const std::string BINARY_FILE = "Exported_Files/RoomTest.meh";
 
-struct PhongMaterial2
+struct MehHeader
+{
+	unsigned int meshCount;
+	unsigned int materialCount;
+
+};
+
+struct PhongMaterial
 {
 	char name[256];
 	float ambient[3];
@@ -62,6 +69,15 @@ struct Vertex
 	float normal[3];
 	float tangent[3];
 	float bitangent[3];
+};
+
+struct MeshGroup
+{
+	char groupName[256];
+	float transformation[3];
+	float rotation[3];
+	bool isChild;
+	char parent[256];
 };
 
 struct Mesh

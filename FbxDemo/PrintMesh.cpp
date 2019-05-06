@@ -32,7 +32,7 @@ string PrintPolygons(FbxMesh* pMesh, string meshName);
 void GetPolygons(FbxMesh* pMesh, MeshHolder* mesh);
 
 
-void GetMesh(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& materials)
+void GetMesh(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& materials)
 {
 	FbxMesh* fbxMesh = (FbxMesh*)pNode->GetNodeAttribute();
 

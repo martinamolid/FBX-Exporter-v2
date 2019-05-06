@@ -17,12 +17,12 @@
 ========================================================================================================================
 */
 
-void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHolder* mesh)
+void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHolder* mesh)
 {
 	int materialCount = 0;
 	FbxNode* materialNode = NULL;
 
-	PhongMaterial2 *materials = nullptr;
+	PhongMaterial *materials = nullptr;
 
 	if (pGeometry) 
 	{
@@ -32,7 +32,7 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHol
 			materialCount = materialNode->GetMaterialCount();
 
 			// MM: Allocates memory for the materials array, based on how many materials are to be read
-			materials = new PhongMaterial2[materialCount];
+			materials = new PhongMaterial[materialCount];
 		}
 	}
 

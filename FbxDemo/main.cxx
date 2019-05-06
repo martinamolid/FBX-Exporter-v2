@@ -41,7 +41,7 @@ using namespace std;
 #pragma comment(lib,"zlib-mt.lib")
 
 // Local function prototypes.
-int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats);
+int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats);
 void DisplayTarget(FbxNode* pNode);
 void DisplayTransformPropagation(FbxNode* pNode);
 string PrintGeometricTransform(FbxNode* pNode);
@@ -102,7 +102,7 @@ int main(int argc, char** argv)
 
 	// Vector of all the meshes in the scene
 	vector<MeshHolder> meshes;
-	vector<PhongMaterial2> materials;
+	vector<PhongMaterial> materials;
 
 	// Reserves memory
 	meshes.reserve(elementCount);
@@ -246,9 +246,9 @@ int main(int argc, char** argv)
 	ofstream binFile2(BINARY_FILE, ofstream::binary);
 
 	// - 1 File Header
-	int meshAmount = (unsigned int)meshData.size();
+	unsigned int meshAmount = (unsigned int)meshData.size();
 	binFile2.write((char*)&meshAmount, sizeof(unsigned int));
-	int materialAmount = (unsigned int)materials.size();
+	unsigned int materialAmount = (unsigned int)materials.size();
 	binFile2.write((char*)&materialAmount, sizeof(unsigned int));
 
 	// - 2 Meshes
@@ -259,19 +259,15 @@ int main(int argc, char** argv)
 		// 1 Mesh header
 		binFile2.write((char*)&meshData[i], sizeof(Mesh));
 
-		// 2 Vertex count
-		unsigned int vtxCount = meshData[i].vertexCount;
-		binFile2.write((char*)&vtxCount, sizeof(unsigned int));
-
-		// 3 Vertex data (pos, uv, norm, tangent, bitangent)
-		binFile2.write((char*)meshes[i].vertices, sizeof(Vertex) * vtxCount);
+		// 2 Vertex data (pos, uv, norm, tangent, bitangent)
+		binFile2.write((char*)meshes[i].vertices, sizeof(Vertex) * meshData[i].vertexCount);
 	}
 
 	// - 3 Materials
 	for (int i = 0; i < materials.size(); i++)
 	{
 
-		binFile2.write((char*)&materials[i], sizeof(PhongMaterial2));
+		binFile2.write((char*)&materials[i], sizeof(PhongMaterial));
 	}
 	binFile2.close();
 
@@ -295,7 +291,7 @@ int main(int argc, char** argv)
 ========================================================================================================================
 */
 
-int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats)
+int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 {
 	// This will check what type this node is
 	// All the cases represent the different types
