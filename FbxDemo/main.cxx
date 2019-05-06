@@ -171,6 +171,9 @@ int main(int argc, char** argv)
 			newMesh.materialName[j] = meshes[i].materialName[j];
 		}
 
+		newMesh.type = meshes[i].type;
+		newMesh.link = meshes[i].link;
+
 		newMesh.vertexCount = meshes[i].vertexCount;
 
 		meshData.push_back(newMesh);
@@ -189,27 +192,33 @@ int main(int argc, char** argv)
 	// - 1 File header
 	asciiFile2 << "  //v File Header --------------------" << endl;
 	asciiFile2 << "  # Mesh count [(unsigned int)]" << endl;
-	asciiFile2 << meshes.size() << endl;				//* Binary data
+	asciiFile2 << meshData.size() << endl;				//* Binary data
 
 	asciiFile2 << "  # Material count [(unsigned int)]" << endl;
 	asciiFile2 << materials.size() << endl;				//* Binary data
 	asciiFile2 << "  //^ File Header --------------------" << endl << endl;
 	// - 2 Meshes
-	for (int i = 0; i < meshes.size(); i++)
+	for (int i = 0; i < meshData.size(); i++)
 	{
 		asciiFile2 << "    //v Mesh " << i << " Header " << " --------------------" << endl << endl;
 
 		// 1 Mesh name
 		asciiFile2 << "  # Mesh name [(char) * 256]: " << endl;
-		asciiFile2 << meshes[i].name << endl;			//* Binary data
+		asciiFile2 << meshData[i].name << endl;			//* Binary data
 
 		// 2  Material count
 		asciiFile2 << "  # Material name [(char) * 256]: " << endl;		
-		asciiFile2 << meshes[i].materialName << endl;	//* Binary data
+		asciiFile2 << meshData[i].materialName << endl;	//* Binary data
+
+		asciiFile2 << "  # Attribute type [(int)]: " << endl;
+		asciiFile2 << meshData[i].type << endl;	//* Binary data
+
+		asciiFile2 << "  # Attribute link [(int)]: " << endl;
+		asciiFile2 << meshData[i].link << endl;	//* Binary data
 
 		// 3 Vertex count
 		asciiFile2 << "  # Vertex count [(unsigned int)]: " << endl;
-		asciiFile2 << meshes[i].vertexCount << endl;	//* Binary data
+		asciiFile2 << meshData[i].vertexCount << endl;	//* Binary data
 
 		asciiFile2 << "    //^ Mesh " << i << " Header " <<  " --------------------" << endl << endl;
 		
@@ -238,12 +247,13 @@ int main(int argc, char** argv)
 		asciiFile2 << materials[i].name << endl;	//* Binary data
 
 		// 2 Material data
-		asciiFile2 << "  # Ambient, diffuse, specular, emissive" << "[(float) * 15]" << endl;
+		asciiFile2 << "  # Ambient, diffuse, specular, emissive, opacity" << "[(float) * 15]" << endl;
 		//*v Binary data
 		asciiFile2 << (float)materials[i].ambient[0] << ", " << (float)materials[i].ambient[1] << ", " << (float)materials[i].ambient[2] << endl;
 		asciiFile2 << (float)materials[i].diffuse[0] << ", " << (float)materials[i].diffuse[1] << ", " << (float)materials[i].diffuse[2] << endl;
 		asciiFile2 << (float)materials[i].specular[0] << ", " << (float)materials[i].specular[1] << ", " << (float)materials[i].specular[2] << endl;
 		asciiFile2 << (float)materials[i].emissive[0] << ", " << (float)materials[i].emissive[1] << ", " << (float)materials[i].emissive[2] << endl;
+		asciiFile2 << (float)materials[i].opacity << endl;
 		//*^ Binary data
 
 
