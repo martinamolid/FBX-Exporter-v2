@@ -31,37 +31,44 @@ using namespace std;
 
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/NewCubeTest.fbx";
+const std::string IN_FBX_FILEPATH = "FBX_Files/CubeHiearchy.fbx";
 const std::string ASCII_FILE = "Exported_Files/RoomTestASCII.txt";
 const std::string BINARY_FILE = "Exported_Files/RoomTest.meh";
 
 struct MehHeader
 {
 	int meshCount;
-	int meshGroupCount;
+	int groupCount;
 	int materialCount;
 	int pointLightCount;
 	int dirLightCount;
 };
 
-struct MeshGroup
-{
-	char groupName[256];
-	float transformation[3];
-	float rotation[3];
-	bool isChild;
-	char parent[256];
-};
-
-struct Mesh
+struct Group	// Type 0;
 {
 	char name[256];
-	char materialName[256];
-	float transformation[3];
+
+	float translation[3];
 	float rotation[3];
 	float scale[3];
 
-	char childName[256];
+	bool isChild;
+	char parentName[256];
+	int parentType;
+};
+
+struct Mesh		// Type 1;
+{
+	char name[256];
+	char materialName[256];
+
+	float translation[3];
+	float rotation[3];
+	float scale[3];
+
+	bool isChild;
+	char parentName[256];
+	int parentType;
 
 	int type;
 	int link;
@@ -103,7 +110,10 @@ struct MeshHolder
 	float translation[3];
 	float rotation[3];
 	float scale[3];
-	vector<MeshHolder> children;
+
+	bool isChild;
+	char parentName[256];
+	int parentType;
 
 	// Might make this into a vector
 	//vector<Vertex> vertices;
