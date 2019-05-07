@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 	// Vectors of elements in the scene
 	vector<MeshHolder> meshData;
 
-	MehHeader* fileHeader = new MehHeader;
+	MehHeader fileHeader;
 	vector<Group> groups;
 	vector<Mesh> meshes;
 	vector<PhongMaterial> materials;
@@ -95,11 +95,11 @@ int main(int argc, char** argv)
 	//	===================================================================
 
 	// ==== Header ====
-	fileHeader->meshCount = (int)meshData.size();
-	fileHeader->groupCount = (int)groups.size();;
-	fileHeader->materialCount = (int)materials.size();
-	fileHeader->pointLightCount = 0;											// TODO **********************
-	fileHeader->dirLightCount = 0;											// TODO **********************
+	fileHeader.meshCount = (int)meshData.size();
+	fileHeader.groupCount = (int)groups.size();;
+	fileHeader.materialCount = (int)materials.size();
+	fileHeader.pointLightCount = 0;											// TODO **********************
+	fileHeader.dirLightCount = 0;											// TODO **********************
 
 	// ==== Meshes ====
 	for (int i = 0; i < meshData.size(); i++)
@@ -153,19 +153,19 @@ int main(int argc, char** argv)
 	// - 1 File header
 	asciiFile2 << "  //v File Header --------------------" << endl;
 	asciiFile2 << "  # Mesh count" << endl;
-	asciiFile2 << fileHeader->meshCount << endl;					//* Binary data
+	asciiFile2 << fileHeader.meshCount << endl;					//* Binary data
 	asciiFile2 << "  # Mesh Group count" << endl;
-	asciiFile2 << fileHeader->groupCount << endl;				//* Binary data
+	asciiFile2 << fileHeader.groupCount << endl;				//* Binary data
 	asciiFile2 << "  # Material count" << endl;
-	asciiFile2 << fileHeader->materialCount << endl;				//* Binary data
+	asciiFile2 << fileHeader.materialCount << endl;				//* Binary data
 	asciiFile2 << "  # Point Light count" << endl;
-	asciiFile2 << fileHeader->pointLightCount << endl;			//* Binary data
+	asciiFile2 << fileHeader.pointLightCount << endl;			//* Binary data
 	asciiFile2 << "  # Directional count" << endl;
-	asciiFile2 << fileHeader->dirLightCount << endl;				//* Binary data
+	asciiFile2 << fileHeader.dirLightCount << endl;				//* Binary data
 	asciiFile2 << "  //^ File Header --------------------" << endl << endl;
 
 	// - 2 Groups
-	for (int i = 0; i < fileHeader->groupCount; i++)
+	for (int i = 0; i < fileHeader.groupCount; i++)
 	{
 		asciiFile2 << "    //v Group " << i << " --------------------" << endl << endl;
 
@@ -199,7 +199,7 @@ int main(int argc, char** argv)
 	}
 
 	// - 3 Meshes
-	for (int i = 0; i < fileHeader->meshCount; i++)
+	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
 		asciiFile2 << "    //v Mesh " << i << " Header " << " --------------------" << endl << endl;
 
@@ -249,7 +249,7 @@ int main(int argc, char** argv)
 		asciiFile2 << endl;
 	}
 	// - 5 Materials
-	for (int i = 0; i < fileHeader->materialCount; i++)
+	for (int i = 0; i < fileHeader.materialCount; i++)
 	{
 		asciiFile2 << "    // Material " << i << " --------------------" << endl;
 
@@ -278,7 +278,7 @@ int main(int argc, char** argv)
 	// - 6 Lights
 	// *Add light ascii writing (1 forloop for each type, copy this one for more light types)
 	// Swap meshes size for light vector size or kaputt														// TODO **********************
-	for (int i = 0; i < fileHeader->meshCount; i++)
+	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
 		asciiFile2 << "    // Light " << i << " --------------------" << endl;
 
@@ -305,14 +305,14 @@ int main(int argc, char** argv)
 	// - 1 File Header
 	binaryFile.write((char*)&fileHeader, sizeof(MehHeader));
 	// - 2 Groups
-	for (int i = 0; i < fileHeader->groupCount; i++)
+	for (int i = 0; i < fileHeader.groupCount; i++)
 	{
 		// 1 Mesh header
 		binaryFile.write((char*)&groups[i], sizeof(Group));
 	}
 
 	// - 3 Meshes
-	for (int i = 0; i < fileHeader->meshCount; i++)
+	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
 		// 3.1 Mesh header
 		binaryFile.write((char*)&meshes[i], sizeof(Mesh));
@@ -322,7 +322,7 @@ int main(int argc, char** argv)
 	}
 
 	// - 4 Materials
-	for (int i = 0; i < fileHeader->materialCount; i++)
+	for (int i = 0; i < fileHeader.materialCount; i++)
 	{
 		binaryFile.write((char*)&materials[i], sizeof(PhongMaterial));
 	}
@@ -330,7 +330,7 @@ int main(int argc, char** argv)
 	// - 4 Light
 	// *Add light binary writing (1 forloop for each type, copy this one for more light types)				// TODO **********************
 	// Change meshCount to lights or kaputt
-	for (int i = 0; i < fileHeader->meshCount; i++)
+	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
 		//binFile2.write((char*)&*--LightElement--, sizeof(--size--));
 	}
