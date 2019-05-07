@@ -37,9 +37,43 @@ const std::string BINARY_FILE = "Exported_Files/TextureTest.meh";
 
 struct MehHeader
 {
-	unsigned int meshCount;
-	unsigned int materialCount;
+	int meshCount;
+	int groupCount;
+	int materialCount;
+	int pointLightCount;
+	int dirLightCount;
+};
 
+struct Group	// Type 0;
+{
+	char name[256];
+
+	float translation[3];
+	float rotation[3];
+	float scale[3];
+
+	bool isChild;
+	char parentName[256];
+	int parentType;
+};
+
+struct Mesh		// Type 1;
+{
+	char name[256];
+	char materialName[256];
+
+	float translation[3];
+	float rotation[3];
+	float scale[3];
+
+	bool isChild;
+	char parentName[256];
+	int parentType;
+
+	int type;
+	int link;
+
+	unsigned int vertexCount;
 };
 
 struct PhongMaterial
@@ -55,13 +89,6 @@ struct PhongMaterial
 	char normal[256];
 };
 
-struct GeoTransformations
-{
-	float translation[3];
-	float rotation[3];
-	float scale[3];
-};
-
 struct Vertex
 {
 	float position[3];
@@ -71,36 +98,26 @@ struct Vertex
 	float bitangent[3];
 };
 
-struct MeshGroup
-{
-	char groupName[256];
-	float transformation[3];
-	float rotation[3];
-	bool isChild;
-	char parent[256];
-};
 
-struct Mesh
-{
-	char name[256];
-	char materialName[256];
-	//char childName;
 
-	int type;
-	int link;
 
-	unsigned int vertexCount;
-};
 
+// ===== Temporary fbx data =====
 struct MeshHolder
 {
 	char name[256];
 	char materialName[256];
-	vector<MeshHolder> children;
+	float translation[3];
+	float rotation[3];
+	float scale[3];
+
+	bool isChild;
+	char parentName[256];
+	int parentType;
 
 	// Might make this into a vector
 	//vector<Vertex> vertices;
-	unsigned int vertexCount;
+	int vertexCount;
 	Vertex* vertices;
 
 	int type;

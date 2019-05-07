@@ -40,9 +40,7 @@ void GetMesh(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& materials)
 	int nameLength = (int)strlen(pNode->GetName());
 	string nameBuffer = pNode->GetName();
 	for (int j = 0; j < nameLength; j++)
-	{
 		mesh->name[j] = nameBuffer[j];
-	}
 	mesh->name[nameLength] = '\0';
 	// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
 

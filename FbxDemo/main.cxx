@@ -10,17 +10,10 @@
 ****************************************************************************************/
 
 
-/*
-========================================================================================================================
-
+/*========================================================================================================================
 	This is the main file of the FBX to Custom Binary Converter for Group 3 in UD1446: Small Game Project
-
 	To decide the filenames for output, see Filenames.h
-
-	// Martina Molid
-
-========================================================================================================================
-*/
+========================================================================================================================*/
 
 // MM: The Common.h include has a lot of the FBX SDK defined functions and types like FBXSDK_printf
 #include "../Common/Common.h"
@@ -41,14 +34,9 @@ using namespace std;
 #pragma comment(lib,"zlib-mt.lib")
 
 // Local function prototypes.
-int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats);
-void DisplayTarget(FbxNode* pNode);
-void DisplayTransformPropagation(FbxNode* pNode);
-string PrintGeometricTransform(FbxNode* pNode);
-void DisplayMetaData(FbxScene* pScene);
+void PrintContent(FbxNode* pNode, vector<Group>& fillGroup, vector<MeshHolder>& mesh, vector<PhongMaterial>& mats, bool isChild, int parentType);
+void DisplayPivotsAndLimits(FbxNode* pNode);
 
-
-static bool gVerbose = true;
 
 int main(int argc, char** argv)
 {
@@ -63,165 +51,216 @@ int main(int argc, char** argv)
 		inParameters.push_back(argv[i]);
 	}
 
-
     // Prepare the FBX SDK.
     InitializeSdkObjects(lSdkManager, fileScene);
-    // Load the scene.
-	
-	// MM: This opens the .fbx file to be read from
+
+	// This is wherethe in fbx filepath should be added comming in from the CMD
 	FbxString lFilePath("");
-
-	if( lFilePath.IsEmpty() )
-	{
-		lFilePath = IN_FBX_FILEPATH.c_str();
-		lResult = LoadScene(lSdkManager, fileScene, lFilePath.Buffer());
-        //lResult = false;
-	}
-
-	/*
-	========================================================================================================================
-		
-		This is where main calls all major printing functions.
-
-		All void Display-- functions are part of the original FBX SDK, while the string Print-- functions are re-worked versions of the Display-- functions,
-			which returns a string with the information into the ASCII file and prints binary into the binary file.
-
-		The out-commented things below are leftovers from the FBX SDK, but is a good guide as to where you might want to implement upcoming things.
-
-		// Martina Molid
-		
-	========================================================================================================================
-	*/
+	lFilePath = IN_FBX_FILEPATH.c_str();
+	// Load the scene.
+	lResult = LoadScene(lSdkManager, fileScene, lFilePath.Buffer());
 
 
-	// INFORMATION HOLDING OF THE SCENE FOR WRITING
+	//	===== Data collection ==================================================
+	//	This is where all the data from the FBX scene is collected.
+	//	The data is then stored in the loader while it's parsed and written
+	//	to the custom format
+	//	========================================================================
+
+	// The root scene node that contains all the elements
 	FbxNode* sceneRootNode = fileScene->GetRootNode();
 
-	// Elements in scene (including childs of childs)
-	int elementCount = sceneRootNode->GetChildCount(true);
+	// Elements in scene (including childs of childs when true)
+	int elementCount = sceneRootNode->GetChildCount();
 
-	// Vector of all the meshes in the scene
-	vector<MeshHolder> meshes;
+	// Vectors of elements in the scene
+	vector<MeshHolder> meshData;
+
+	MehHeader fileHeader;
+	vector<Group> groups;
+	vector<Mesh> meshes;
 	vector<PhongMaterial> materials;
 
-	// Reserves memory
-	meshes.reserve(elementCount);
-
-	// Right now will pushback one mesh for every _element_ in the scene
-	// Need to look over how to distinguish mesh from other objects
 	if (sceneRootNode)
 	{
 		for (int i = 0; i < elementCount; i++)
 		{
-			
-			MeshHolder fillMesh;
-			int type = PrintContent(sceneRootNode->GetChild(i), &fillMesh, materials);
-
-			if (type == 1)
-			{
-				meshes.push_back(fillMesh);
-			}
-				
-			if (type == 2)
-			{
-				// Do something
-			}
-				
+			PrintContent(sceneRootNode->GetChild(i), groups, meshData, materials, false, -1);		
 		}
 	}
 
-	// Parse writing data
-	vector<Mesh> meshData;
-	for (int i = 0; i < meshes.size(); i++)
+	//	===== Parse data ==================================================
+	//	This section will parse and data that isn't yet fully loaded in for 
+	//	the writing of the custom file
+	//	===================================================================
+
+	// ==== Header ====
+	fileHeader.meshCount = (int)meshData.size();
+	fileHeader.groupCount = (int)groups.size();;
+	fileHeader.materialCount = (int)materials.size();
+	fileHeader.pointLightCount = 0;											// TODO **********************
+	fileHeader.dirLightCount = 0;											// TODO **********************
+
+	// ==== Meshes ====
+	for (int i = 0; i < meshData.size(); i++)
 	{
-		Mesh newMesh;
+		Mesh fillMesh;
+
+		// Name
 		for (int j = 0; j < NAME_SIZE; j++)
-		{
-			newMesh.name[j] = meshes[i].name[j];
-		}
-		
+			fillMesh.name[j] = meshData[i].name[j];
+		// Material
 		for (int j = 0; j < NAME_SIZE; j++)
+			fillMesh.materialName[j] = meshData[i].materialName[j];
+		// Transformation
+		fillMesh.translation[0] = meshData[i].translation[0];
+		fillMesh.translation[1] = meshData[i].translation[1];
+		fillMesh.translation[2] = meshData[i].translation[2];
+		fillMesh.rotation[0] = meshData[i].rotation[0];
+		fillMesh.rotation[1] = meshData[i].rotation[1];
+		fillMesh.rotation[2] = meshData[i].rotation[2];
+		fillMesh.scale[0] = meshData[i].scale[0];
+		fillMesh.scale[1] = meshData[i].scale[1];
+		fillMesh.scale[2] = meshData[i].scale[2];
+		// Hierarchy
+		fillMesh.isChild = meshData[i].isChild;
+		if (fillMesh.isChild)
 		{
-			newMesh.materialName[j] = meshes[i].materialName[j];
+			int nameLength = (int)strlen(meshData[i].parentName);
+			for (int j = 0; j < nameLength + 1; j++)
+				fillMesh.parentName[j] = meshData[i].parentName[j];
+			// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
 		}
-
-		newMesh.type = meshes[i].type;
-		newMesh.link = meshes[i].link;
-
-		newMesh.vertexCount = meshes[i].vertexCount;
-
-		meshData.push_back(newMesh);
+		fillMesh.parentType = meshData[i].parentType;
+		// Custom attribute
+		fillMesh.type = meshData[i].type;
+		fillMesh.link = meshData[i].link;
+		// Vertex count
+		fillMesh.vertexCount = meshData[i].vertexCount;
+		meshes.push_back(fillMesh);
 	}
 
 
-	// ===== Ascii debug file =====
+	// ===== Ascii debug file ==================================================
 	// This file is only for debugging purposes and is used to read and compare the data to the binary data.
-	// Note that the binary could in some cases be correct but the data here could be wrong or not updates.
+	// Note that the binary could in some cases be correct but the data here could be wrong or not updated and vice verse.
 	// This should be in 100% sync with what is printed to the binary file at all times for debugging to be accurate.
-	// Everything noted as Binary data is what is written to the binary file. Everything else are comments or debug information.
+	// Everything noted as *Binary data is what is going to be written to the binary file later on. Everything else are comments or debug information.
+	//	========================================================================
 	ofstream asciiFile2;
-	asciiFile2.open(ASCII_FILE);	// MM: Opens the ASCII file to write the ASCII strings to
-	asciiFile2 << fixed << setprecision(5) ;
+	asciiFile2.open(ASCII_FILE);	// This is where out the filepath should be added comming in from the CMD
+	asciiFile2 << fixed << setprecision(10) ;
 
 	// - 1 File header
 	asciiFile2 << "  //v File Header --------------------" << endl;
-	asciiFile2 << "  # Mesh count [(unsigned int)]" << endl;
-	asciiFile2 << meshData.size() << endl;				//* Binary data
-
-	asciiFile2 << "  # Material count [(unsigned int)]" << endl;
-	asciiFile2 << materials.size() << endl;				//* Binary data
+	asciiFile2 << "  # Mesh count" << endl;
+	asciiFile2 << fileHeader.meshCount << endl;					//* Binary data
+	asciiFile2 << "  # Mesh Group count" << endl;
+	asciiFile2 << fileHeader.groupCount << endl;				//* Binary data
+	asciiFile2 << "  # Material count" << endl;
+	asciiFile2 << fileHeader.materialCount << endl;				//* Binary data
+	asciiFile2 << "  # Point Light count" << endl;
+	asciiFile2 << fileHeader.pointLightCount << endl;			//* Binary data
+	asciiFile2 << "  # Directional count" << endl;
+	asciiFile2 << fileHeader.dirLightCount << endl;				//* Binary data
 	asciiFile2 << "  //^ File Header --------------------" << endl << endl;
-	// - 2 Meshes
-	for (int i = 0; i < meshData.size(); i++)
+
+	// - 2 Groups
+	for (int i = 0; i < fileHeader.groupCount; i++)
+	{
+		asciiFile2 << "    //v Group " << i << " --------------------" << endl << endl;
+
+		// 2.1 Group name
+		asciiFile2 << "  # Group name: " << endl;
+		asciiFile2 << groups[i].name << endl;					//* Binary data
+		// 2.2 Transformation
+
+		asciiFile2 << "  * "  << "Translation vector: " << endl;
+		//v Binary data
+		asciiFile2 << (float)groups[i].translation[0] << ", " << (float)groups[i].translation[1] << ", " << (float)groups[i].translation[2] << endl;
+
+		asciiFile2 << "  * "  << "Rotation vector: " << endl;
+		//v Binary data
+		asciiFile2 << (float)groups[i].rotation[0] << ", " << (float)groups[i].rotation[1] << ", " << (float)groups[i].rotation[2] << endl;
+
+
+		asciiFile2 << "  * " << "Scale vector: " << endl;
+		//v Binary data
+		asciiFile2 << (float)groups[i].scale[0] << ", " << (float)groups[i].scale[1] << ", " << (float)groups[i].scale[2] << endl;
+
+		// 2.3 Hierarchy
+		asciiFile2 << "  # Is child: " << endl;
+		asciiFile2 << groups[i].isChild << endl;				//* Binary data
+		asciiFile2 << "  # Parent Name: " << endl;
+		asciiFile2 << groups[i].parentName << endl;				//* Binary data
+		asciiFile2 << "  # Parent type: " << endl;
+		asciiFile2 << groups[i].parentType << endl;				//* Binary data
+
+		asciiFile2 << "    //^ Group " << i << " --------------------" << endl << endl;
+		asciiFile2 << endl;
+	}
+
+	// - 3 Meshes
+	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
 		asciiFile2 << "    //v Mesh " << i << " Header " << " --------------------" << endl << endl;
 
-		// 1 Mesh name
-		asciiFile2 << "  # Mesh name [(char) * 256]: " << endl;
-		asciiFile2 << meshData[i].name << endl;			//* Binary data
-
-		// 2  Material count
-		asciiFile2 << "  # Material name [(char) * 256]: " << endl;		
-		asciiFile2 << meshData[i].materialName << endl;	//* Binary data
-
-		asciiFile2 << "  # Attribute type [(int)]: " << endl;
-		asciiFile2 << meshData[i].type << endl;	//* Binary data
-
-		asciiFile2 << "  # Attribute link [(int)]: " << endl;
-		asciiFile2 << meshData[i].link << endl;	//* Binary data
-
-		// 3 Vertex count
-		asciiFile2 << "  # Vertex count [(unsigned int)]: " << endl;
-		asciiFile2 << meshData[i].vertexCount << endl;	//* Binary data
+		// 3.1 Mesh name
+		asciiFile2 << "  # Mesh name: " << endl;
+		asciiFile2 << meshes[i].name << endl;					//* Binary data
+		// 3.2  Material name
+		asciiFile2 << "  # Material name : " << endl;		
+		asciiFile2 << meshes[i].materialName << endl;			//* Binary data
+		// 3.3 Transformation
+		asciiFile2 << "  * " << "Translation vector: " << endl;
+		asciiFile2 << (float)meshData[i].translation[0] << ", " << (float)meshData[i].translation[1] << ", " << (float)meshData[i].translation[2] << endl; 	//* Binary data
+		asciiFile2 << "  * " << "Rotation vector: " << endl;
+		asciiFile2 << (float)meshData[i].rotation[0] << ", " << (float)meshData[i].rotation[1] << ", " << (float)meshData[i].rotation[2] << endl; 			//* Binary data
+		asciiFile2 << "  * " << "Scale vector: " << endl;
+		asciiFile2 << (float)meshData[i].scale[0] << ", " << (float)meshData[i].scale[1] << ", " << (float)meshData[i].scale[2] << endl; 					//* Binary data
+		// 3.4 hierarchy
+		asciiFile2 << "  # Is child: " << endl;
+		asciiFile2 << meshes[i].isChild << endl;				//* Binary data
+		asciiFile2 << "  # Parent Name: " << endl;
+		asciiFile2 << meshes[i].parentName << endl;				//* Binary data
+		asciiFile2 << "  # Parent type: " << endl;
+		asciiFile2 << meshes[i].parentType << endl;				//* Binary data
+		// 3.5  Entity attributes
+		asciiFile2 << "  # Attribute type: " << endl;
+		asciiFile2 << meshes[i].type << endl;					//* Binary data
+		asciiFile2 << "  # Attribute link: " << endl;
+		asciiFile2 << meshes[i].link << endl;					//* Binary data
+		// 3.6 Vertex count
+		asciiFile2 << "  # Vertex count: " << endl;
+		asciiFile2 << meshes[i].vertexCount << endl;			//* Binary data
 
 		asciiFile2 << "    //^ Mesh " << i << " Header " <<  " --------------------" << endl << endl;
 		
-		// 4  Vertex data
-		for (unsigned int j = 0; j < meshes[i].vertexCount; j++)
+		// 3.* Vertex data
+		for (int j = 0; j < meshData[i].vertexCount; j++)
 		{
-			asciiFile2 << "  * " << j << " Vertex position / " << "uv / " << "normal / " << "tangent / " << "binormal " << "[(float) * 14]" << endl;
+			asciiFile2 << "  * " << j << " Vertex position / " << "uv / " << "normal / " << "tangent / " << "binormal " << endl;
 			//v Binary data
-			asciiFile2 << (float)meshes[i].vertices[j].position[0] << ", "	<< (float)meshes[i].vertices[j].position[1] << ", "		<< (float)meshes[i].vertices[j].position[2] << endl; 
-			asciiFile2 << (float)meshes[i].vertices[j].uv[0] << ", "		<< (float)meshes[i].vertices[j].uv[1] << ", "			<< endl;
-			asciiFile2 << (float)meshes[i].vertices[j].normal[0] << ", "	<< (float)meshes[i].vertices[j].normal[1] << ", "		<< (float)meshes[i].vertices[j].normal[2] << endl;
-			asciiFile2 << (float)meshes[i].vertices[j].tangent[0] << ", "	<< (float)meshes[i].vertices[j].tangent[1] << ", "		<< (float)meshes[i].vertices[j].tangent[2] << endl;
-			asciiFile2 << (float)meshes[i].vertices[j].bitangent[0] << ", "	<< (float)meshes[i].vertices[j].bitangent[1] << ", "	<< (float)meshes[i].vertices[j].bitangent[2] << endl << endl;
+			asciiFile2 << (float)meshData[i].vertices[j].position[0] << ", "	<< (float)meshData[i].vertices[j].position[1] << ", "		<< (float)meshData[i].vertices[j].position[2] << endl; 
+			asciiFile2 << (float)meshData[i].vertices[j].uv[0] << ", "		<< (float)meshData[i].vertices[j].uv[1] << ", "			<< endl;
+			asciiFile2 << (float)meshData[i].vertices[j].normal[0] << ", "	<< (float)meshData[i].vertices[j].normal[1] << ", "		<< (float)meshData[i].vertices[j].normal[2] << endl;
+			asciiFile2 << (float)meshData[i].vertices[j].tangent[0] << ", "	<< (float)meshData[i].vertices[j].tangent[1] << ", "		<< (float)meshData[i].vertices[j].tangent[2] << endl;
+			asciiFile2 << (float)meshData[i].vertices[j].bitangent[0] << ", "	<< (float)meshData[i].vertices[j].bitangent[1] << ", "	<< (float)meshData[i].vertices[j].bitangent[2] << endl << endl;
 			//^ Binary data
 		}
 		asciiFile2 << endl;
 	}
-
-	// - 3 Materials
-	for (int i = 0; i < materials.size(); i++)
+	// - 5 Materials
+	for (int i = 0; i < fileHeader.materialCount; i++)
 	{
 		asciiFile2 << "    // Material " << i << " --------------------" << endl;
 
-		// 1 Material name
-		asciiFile2 << "  # Material name [(char) * 256]: " << endl;
-		asciiFile2 << materials[i].name << endl;	//* Binary data
+		// 5.1 Material name
+		asciiFile2 << "  # Material name: " << endl;
+		asciiFile2 << materials[i].name << endl;				//* Binary data
 
-		// 2 Material data
-		asciiFile2 << "  # Ambient, diffuse, specular, emissive, opacity" << "[(float) * 13]" << endl;
+		// 5.2 Material data
+		asciiFile2 << "  # Ambient, diffuse, specular, emissive, opacity" << endl;
 		//*v Binary data
 		asciiFile2 << (float)materials[i].ambient[0] << ", " << (float)materials[i].ambient[1] << ", " << (float)materials[i].ambient[2] << endl;
 		asciiFile2 << (float)materials[i].diffuse[0] << ", " << (float)materials[i].diffuse[1] << ", " << (float)materials[i].diffuse[2] << endl;
@@ -230,45 +269,76 @@ int main(int argc, char** argv)
 		asciiFile2 << (float)materials[i].opacity << endl;
 		//*^ Binary data
 
-		// 3 Albedo filename
-		asciiFile2 << "  # Albedo name [(char) * 256]: " << endl;
-		asciiFile2 << materials[i].albedo << endl;	//* Binary data
+		// 5.3 Albedo filename
+		asciiFile2 << "  # Albedo name: " << endl;
+		asciiFile2 << materials[i].albedo << endl;				//* Binary data
 
-		// 4 Normal filename
-		asciiFile2 << "  # Normal name [(char) * 256]: " << endl;
-		asciiFile2 << materials[i].normal << endl;	//* Binary data
+		// 5.4 Normal filename
+		asciiFile2 << "  # Normal name: " << endl;
+		asciiFile2 << materials[i].normal << endl;				//* Binary data
 
+	}
+	// - 6 Lights
+	// *Add light ascii writing (1 forloop for each type, copy this one for more light types)
+	// Swap meshes size for light vector size or kaputt														// TODO **********************
+	for (int i = 0; i < fileHeader.meshCount; i++)
+	{
+		asciiFile2 << "    // Light " << i << " --------------------" << endl;
+
+		// 1 Light name
+		asciiFile2 << "  # Light name: " << endl;
+		//asciiFile2 << *name* << endl;	//* Binary data
+
+		// 2 Light data
+		//asciiFile2 << "  # Position, rotation, strength etc***************** << "[(float) * -number-]" << endl;
+		//*v Binary data (visual)
+		//asciiFile2 << (float)light.something[0] << ", " << (float)light.something[0] << ", " << (float)light.something[0] << endl;
 
 	}
 	asciiFile2.close();
 
-	// Binary file
-	ofstream binFile2(BINARY_FILE, ofstream::binary);
-
+	
+	// ===== Binary file file ==================================================
+	// This is used to directly write binary data to the file
+	// Binary data is as expected hard to read and isn't formated in a readableway even when turned into
+	// it's relevant type when read (ex int, float, etc). It's up to the reader to know how it was formated
+	// and format it in the same way upon reading.
+	//	========================================================================
+	ofstream binaryFile(BINARY_FILE, ofstream::binary);	// This is where out the filepath should be added comming in from the CMD
 	// - 1 File Header
-	unsigned int meshAmount = (unsigned int)meshData.size();
-	binFile2.write((char*)&meshAmount, sizeof(unsigned int));
-	unsigned int materialAmount = (unsigned int)materials.size();
-	binFile2.write((char*)&materialAmount, sizeof(unsigned int));
-
-	// - 2 Meshes
-	for (int i = 0; i < meshAmount; i++)
+	binaryFile.write((char*)&fileHeader, sizeof(MehHeader));
+	// - 2 Groups
+	for (int i = 0; i < fileHeader.groupCount; i++)
 	{
-		// --- MM: Getting, formatting and printing mesh name ---
-
 		// 1 Mesh header
-		binFile2.write((char*)&meshData[i], sizeof(Mesh));
-
-		// 2 Vertex data (pos, uv, norm, tangent, bitangent)
-		binFile2.write((char*)meshes[i].vertices, sizeof(Vertex) * meshData[i].vertexCount);
+		binaryFile.write((char*)&groups[i], sizeof(Group));
 	}
 
-	// - 3 Materials
-	for (int i = 0; i < materials.size(); i++)
+	// - 3 Meshes
+	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
-		binFile2.write((char*)&materials[i], sizeof(PhongMaterial));
+		// 3.1 Mesh header
+		binaryFile.write((char*)&meshes[i], sizeof(Mesh));
+
+		// 3.2 Vertex data (pos, uv, norm, tangent, bitangent)
+		binaryFile.write((char*)meshData[i].vertices, sizeof(Vertex) * meshes[i].vertexCount);
 	}
-	binFile2.close();
+
+	// - 4 Materials
+	for (int i = 0; i < fileHeader.materialCount; i++)
+	{
+		binaryFile.write((char*)&materials[i], sizeof(PhongMaterial));
+	}
+
+	// - 4 Light
+	// *Add light binary writing (1 forloop for each type, copy this one for more light types)				// TODO **********************
+	// Change meshCount to lights or kaputt
+	for (int i = 0; i < fileHeader.meshCount; i++)
+	{
+		//binFile2.write((char*)&*--LightElement--, sizeof(--size--));
+	}
+	binaryFile.close();
+
 
 
     // Destroy all objects created by the FBX SDK.
@@ -278,25 +348,25 @@ int main(int argc, char** argv)
     return 0;
 }
 
-/* 
-========================================================================================================================
-
+/*========================================================================================================================
 	PrintContent recursively prints all information in a node (and its children), determined by the type of the node.
-	For now, only meshes are printed out, but all original code from the FBX SDK is left in here as a reference
-		to how and where they print skeletons and lights.
-
-	// Martina Molid
-
-========================================================================================================================
-*/
-
-int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
+========================================================================================================================*/
+void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& meshes, vector<PhongMaterial>& mats, bool isChild, int parentType)
 {
 	// This will check what type this node is
 	// All the cases represent the different types
 	FbxNodeAttribute::EType lAttributeType;
-	int type = 0;
 
+	FbxVector4 translation = pNode->EvaluateLocalTranslation();
+	FbxVector4 rotation = pNode->EvaluateLocalRotation();
+	FbxVector4 scale = pNode->EvaluateLocalScaling();
+
+	int nameLength = (int)strlen(pNode->GetName());
+	string nameBuffer = pNode->GetName();
+	int pNameLength = (int)strlen(pNode->GetParent()->GetName());
+	string pNameBuffer = pNode->GetParent()->GetName();
+	
+	MeshHolder fillMesh;
 	if (pNode->GetNodeAttribute() == NULL)
 	{
 		FBXSDK_printf("NULL Node Attribute\n\n");
@@ -309,8 +379,33 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 		{
 		default:
 			break;
-		case FbxNodeAttribute::eMarker:
-			//DisplayMarker(pNode);
+
+		case FbxNodeAttribute::eNull:
+			// This is probably a group
+			Group fillGroup;
+			// Applies the mesh name
+			for (int j = 0; j < nameLength; j++)
+				fillGroup.name[j] = nameBuffer[j];
+			fillGroup.name[nameLength] = '\0';
+
+			fillGroup.translation[0] = (float)translation[0];
+			fillGroup.translation[1] = (float)translation[1];
+			fillGroup.translation[2] = (float)translation[2];
+			fillGroup.rotation[0] = (float)rotation[0];
+			fillGroup.rotation[1] = (float)rotation[1];
+			fillGroup.rotation[2] = (float)rotation[2];
+			fillGroup.scale[0] = (float)scale[0];
+			fillGroup.scale[1] = (float)scale[1];
+			fillGroup.scale[2] = (float)scale[2];
+			fillGroup.isChild = isChild;
+			for (int j = 0; j < pNameLength; j++)
+				fillGroup.parentName[j] = pNameBuffer[j];
+			fillGroup.parentName[pNameLength] = '\0';
+				// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
+			fillGroup.parentType = parentType;
+			
+			parentType = 0;
+			groups.push_back(fillGroup);
 			break;
 
 		case FbxNodeAttribute::eSkeleton:
@@ -318,22 +413,28 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 			break;
 
 		case FbxNodeAttribute::eMesh:
-			//DisplayMesh(pNode);
-			
-			// Here we can find out that this node is a mesh
-			// We could utilize this in the vector and only push back things we know are meshes once we aquire them
-			// Alternatively extract this from the swtich case since this is a template for printing information to 
-			// the command prompt with no regards to format or similar
-			type = 1;
-			GetMesh(pNode, mesh, mats);
-			break;
+			// This applies the relevant type (1 = mesh) and adds
+			// The relevant transformation data
+			fillMesh.translation[0] = (float)translation[0];
+			fillMesh.translation[1] = (float)translation[1];
+			fillMesh.translation[2] = (float)translation[2];
+			fillMesh.rotation[0] = (float)rotation[0];
+			fillMesh.rotation[1] = (float)rotation[1];
+			fillMesh.rotation[2] = (float)rotation[2];
+			fillMesh.scale[0] = (float)scale[0];
+			fillMesh.scale[1] = (float)scale[1];
+			fillMesh.scale[2] = (float)scale[2];
+			GetMesh(pNode, &fillMesh, mats);
+			fillMesh.isChild = isChild;
+			for (int j = 0; j < pNameLength; j++)
+				fillMesh.parentName[j] = pNameBuffer[j];
+			fillMesh.parentName[pNameLength] = '\0';
+			// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
 
-		case FbxNodeAttribute::eNurbs:
-			//DisplayNurb(pNode);
-			break;
+			fillMesh.parentType = parentType;
 
-		case FbxNodeAttribute::ePatch:
-			//DisplayPatch(pNode);
+			parentType = 1;
+			meshes.push_back(fillMesh);
 			break;
 
 		case FbxNodeAttribute::eCamera:
@@ -341,213 +442,18 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 			break;
 
 		case FbxNodeAttribute::eLight:
-			type = 2;
-			//DisplayLight(pNode);
-			//PrintLight(pNode);
+			// *Add light functions
+			// *Add light position and rotation									// TODO **********************
 			break;
 
-		case FbxNodeAttribute::eLODGroup:
-			//DisplayLodGroup(pNode);
-			break;
 		}
 	}
-
-	/*DisplayUserProperties(pNode);
-	DisplayTarget(pNode);
-	DisplayPivotsAndLimits(pNode);
-	DisplayTransformPropagation(pNode);*/
-	//PrintGeometricTransform(pNode);
 
 	// Loops through all the children of this node
 	for (int i = 0; i < pNode->GetChildCount(); i++)
 	{
-		MeshHolder fillMesh;
-		
-		PrintContent(pNode->GetChild(i), &fillMesh, mats);
-
-		mesh->children.push_back(fillMesh);
+		PrintContent(pNode->GetChild(i), groups, meshes, mats, true, parentType);
 	}
 
-
-	return type;
-}
-
-
-void DisplayTarget(FbxNode* pNode)
-{
-    if(pNode->GetTarget() != NULL)
-    {
-        //DisplayString("    Target Name: ", (char *) pNode->GetTarget()->GetName());
-    }
-}
-
-void DisplayTransformPropagation(FbxNode* pNode)
-{
-    FBXSDK_printf("    Transformation Propagation\n");
-
-    // 
-    // Rotation Space
-    //
-    EFbxRotationOrder lRotationOrder;
-    pNode->GetRotationOrder(FbxNode::eSourcePivot, lRotationOrder);
-
-    FBXSDK_printf("        Rotation Space: ");
-
-    switch (lRotationOrder)
-    {
-    case eEulerXYZ: 
-        FBXSDK_printf("Euler XYZ\n");
-        break;
-    case eEulerXZY:
-        FBXSDK_printf("Euler XZY\n");
-        break;
-    case eEulerYZX:
-        FBXSDK_printf("Euler YZX\n");
-        break;
-    case eEulerYXZ:
-        FBXSDK_printf("Euler YXZ\n");
-        break;
-    case eEulerZXY:
-        FBXSDK_printf("Euler ZXY\n");
-        break;
-    case eEulerZYX:
-        FBXSDK_printf("Euler ZYX\n");
-        break;
-    case eSphericXYZ:
-        FBXSDK_printf("Spheric XYZ\n");
-        break;
-    }
-
-    //
-    // Use the Rotation space only for the limits
-    // (keep using eEulerXYZ for the rest)
-    //
-    FBXSDK_printf("        Use the Rotation Space for Limit specification only: %s\n",
-        pNode->GetUseRotationSpaceForLimitOnly(FbxNode::eSourcePivot) ? "Yes" : "No");
-
-
-    //
-    // Inherit Type
-    //
-    FbxTransform::EInheritType lInheritType;
-    pNode->GetTransformationInheritType(lInheritType);
-
-    FBXSDK_printf("        Transformation Inheritance: ");
-
-    switch (lInheritType)
-    {
-    case FbxTransform::eInheritRrSs:
-        FBXSDK_printf("RrSs\n");
-        break;
-    case FbxTransform::eInheritRSrs:
-        FBXSDK_printf("RSrs\n");
-        break;
-    case FbxTransform::eInheritRrs:
-        FBXSDK_printf("Rrs\n");
-        break;
-    }
-}
-
-
-/*
-========================================================================================================================
-
-	PrintGeometricTransform gets the object's geometric transformations and prints it to the ASCII and binary file.
-		The problem right now is that it has to be called before or after the node printing.
-
-	// Martina Molid
-
-========================================================================================================================
-*/
-string PrintGeometricTransform(FbxNode* pNode)
-{
-    FbxVector4 lTmpVector;
-	GeoTransformations transformation;
-	string pString;
-
-	ofstream binFile(BINARY_FILE, ofstream::binary | ofstream::app);
-
-
-    // Translation
-    lTmpVector = pNode->GetGeometricTranslation(FbxNode::eSourcePivot);
-	pString += "        Translation: " + to_string(lTmpVector[0]) + " " + to_string(lTmpVector[1]) + " " + to_string(lTmpVector[2]) + "\n";
-	transformation.translation[0] = (float)lTmpVector[0];
-	transformation.translation[1] = (float)lTmpVector[1];
-	transformation.translation[2] = (float)lTmpVector[2];
-
-    // Rotation
-    lTmpVector = pNode->GetGeometricRotation(FbxNode::eSourcePivot);
-	pString += "        Rotation:    " + to_string(lTmpVector[0]) + " " + to_string(lTmpVector[1]) + " " + to_string(lTmpVector[2]) + "\n";
-	transformation.rotation[0] = (float)lTmpVector[0];
-	transformation.rotation[1] = (float)lTmpVector[1];
-	transformation.rotation[2] = (float)lTmpVector[2];
-
-    // Scaling
-    lTmpVector = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
-	pString += "        Scaling:     " + to_string(lTmpVector[0]) + " " + to_string(lTmpVector[1]) + " " + to_string(lTmpVector[2]) + "\n";
-	pString += "\n";
-	transformation.scale[0] = (float)lTmpVector[0];
-	transformation.scale[1] = (float)lTmpVector[1];
-	transformation.scale[2] = (float)lTmpVector[2];
-
-	binFile.write((char*)&transformation, sizeof(GeoTransformations));
-
-	binFile.close();
-	return pString;
-}
-
-
-/*
-========================================================================================================================
-
-	DisplayMetaData has been printing empty in all the test runs of the original FBX SDK, it might not be useful to us.
-
-	// Martina Molid
-
-========================================================================================================================
-*/
-void DisplayMetaData(FbxScene* pScene)
-{
-    FbxDocumentInfo* sceneInfo = pScene->GetSceneInfo();
-    if (sceneInfo)
-    {
-        FBXSDK_printf("\n\n--------------------\nMeta-Data\n--------------------\n\n");
-        FBXSDK_printf("    Title: %s\n", sceneInfo->mTitle.Buffer());
-        FBXSDK_printf("    Subject: %s\n", sceneInfo->mSubject.Buffer());
-        FBXSDK_printf("    Author: %s\n", sceneInfo->mAuthor.Buffer());
-        FBXSDK_printf("    Keywords: %s\n", sceneInfo->mKeywords.Buffer());
-        FBXSDK_printf("    Revision: %s\n", sceneInfo->mRevision.Buffer());
-        FBXSDK_printf("    Comment: %s\n", sceneInfo->mComment.Buffer());
-
-        FbxThumbnail* thumbnail = sceneInfo->GetSceneThumbnail();
-        if (thumbnail)
-        {
-            FBXSDK_printf("    Thumbnail:\n");
-
-            switch (thumbnail->GetDataFormat())
-            {
-            case FbxThumbnail::eRGB_24:
-                FBXSDK_printf("        Format: RGB\n");
-                break;
-            case FbxThumbnail::eRGBA_32:
-                FBXSDK_printf("        Format: RGBA\n");
-                break;
-            }
-
-            switch (thumbnail->GetSize())
-            {
-	        default:
-	            break;
-            case FbxThumbnail::eNotSet:
-                FBXSDK_printf("        Size: no dimensions specified (%ld bytes)\n", thumbnail->GetSizeInBytes());
-                break;
-            case FbxThumbnail::e64x64:
-                FBXSDK_printf("        Size: 64 x 64 pixels (%ld bytes)\n", thumbnail->GetSizeInBytes());
-                break;
-            case FbxThumbnail::e128x128:
-                FBXSDK_printf("        Size: 128 x 128 pixels (%ld bytes)\n", thumbnail->GetSizeInBytes());
-            }
-        }
-    }
 }
 

@@ -209,6 +209,7 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 	}
 
 	// Special case for the first material
+	// Might not be needed
 	if (materialCount && mats.size() == 0)
 	{
 		mats.push_back(materials[0]);
