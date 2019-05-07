@@ -85,8 +85,8 @@ struct Mesh
 
 	char childName[256];
 
-	unsigned int type;
-	unsigned int link;
+	int type;
+	int link;
 
 	unsigned int vertexCount;
 };
@@ -102,11 +102,11 @@ struct MeshHolder
 
 	// Might make this into a vector
 	//vector<Vertex> vertices;
-	unsigned int vertexCount;
+	int vertexCount;
 	Vertex* vertices;
 
-	unsigned int type;
-	unsigned int link;
+	int type;
+	int link;
 
 	// Constructor that may not be needed
 	MeshHolder()

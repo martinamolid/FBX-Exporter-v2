@@ -10,17 +10,12 @@
 ****************************************************************************************/
 
 
-/*
-========================================================================================================================
+/*========================================================================================================================
 
 	This is the main file of the FBX to Custom Binary Converter for Group 3 in UD1446: Small Game Project
-
 	To decide the filenames for output, see Filenames.h
-
 	// Martina Molid
-
-========================================================================================================================
-*/
+========================================================================================================================*/
 
 // MM: The Common.h include has a lot of the FBX SDK defined functions and types like FBXSDK_printf
 #include "../Common/Common.h"
@@ -75,26 +70,19 @@ int main(int argc, char** argv)
         //lResult = false;
 	}
 
-	/*
-	========================================================================================================================
-		
+	/*========================================================================================================================	
 		This is where main calls all major printing functions.
-
 		All void Display-- functions are part of the original FBX SDK, while the string Print-- functions are re-worked versions of the Display-- functions,
 			which returns a string with the information into the ASCII file and prints binary into the binary file.
-
 		The out-commented things below are leftovers from the FBX SDK, but is a good guide as to where you might want to implement upcoming things.
-
 		// Martina Molid
-		
-	========================================================================================================================
-	*/
+	========================================================================================================================*/
 
 
-	// INFORMATION HOLDING OF THE SCENE FOR WRITING
+	// The root scene node that contains all the elements
 	FbxNode* sceneRootNode = fileScene->GetRootNode();
 
-	// Elements in scene (including childs of childs)
+	// Elements in scene (including childs of childs when true)
 	unsigned int elementCount = sceneRootNode->GetChildCount(true);
 
 	// Vector of all the meshes in the scene
@@ -103,8 +91,6 @@ int main(int argc, char** argv)
 	vector<Mesh> meshes;
 	vector<PhongMaterial> materials;
 
-	// Right now will pushback one mesh for every _element_ in the scene
-	// Need to look over how to distinguish mesh from other objects
 	if (sceneRootNode)
 	{
 		for (unsigned int i = 0; i < elementCount; i++)
@@ -118,7 +104,8 @@ int main(int argc, char** argv)
 				meshData.push_back(fillMesh);
 				break;
 			case 2:
-				// Light
+				// Light									// TODO **********************
+				// *Add light filling
 				break;
 			case 3:
 				// Light
@@ -138,9 +125,9 @@ int main(int argc, char** argv)
 	}
 
 	// Parse writing data
-	fileHeader.meshCount = (unsigned int)meshData.size();
+	fileHeader.meshCount = (int)meshData.size();
 	fileHeader.meshGroupCount = 0;
-	fileHeader.materialCount = (unsigned int)materials.size();
+	fileHeader.materialCount = (int)materials.size();
 	fileHeader.pointLightCount = 0;
 	fileHeader.dirLightCount = 0;
 
@@ -168,19 +155,19 @@ int main(int argc, char** argv)
 
 	// ===== Ascii debug file =====
 	// This file is only for debugging purposes and is used to read and compare the data to the binary data.
-	// Note that the binary could in some cases be correct but the data here could be wrong or not updates.
+	// Note that the binary could in some cases be correct but the data here could be wrong or not updated and vice verse.
 	// This should be in 100% sync with what is printed to the binary file at all times for debugging to be accurate.
-	// Everything noted as Binary data is what is written to the binary file. Everything else are comments or debug information.
+	// Everything noted as *Binary data is what is going to be written to the binary file later on. Everything else are comments or debug information.
 	ofstream asciiFile2;
 	asciiFile2.open(ASCII_FILE);	// MM: Opens the ASCII file to write the ASCII strings to
-	asciiFile2 << fixed << setprecision(5) ;
+	asciiFile2 << fixed << setprecision(10) ;
 
 	// - 1 File header
 	asciiFile2 << "  //v File Header --------------------" << endl;
-	asciiFile2 << "  # Mesh count [(unsigned int)]" << endl;
+	asciiFile2 << "  # Mesh count [(int)]" << endl;
 	asciiFile2 << meshes.size() << endl;				//* Binary data
 
-	asciiFile2 << "  # Material count [(unsigned int)]" << endl;
+	asciiFile2 << "  # Material count [(int)]" << endl;
 	asciiFile2 << materials.size() << endl;				//* Binary data
 	asciiFile2 << "  //^ File Header --------------------" << endl << endl;
 	// - 2 Meshes
@@ -205,13 +192,13 @@ int main(int argc, char** argv)
 		asciiFile2 << meshes[i].link << endl;	//* Binary data
 
 		// 5 Vertex count
-		asciiFile2 << "  # Vertex count [(unsigned int)]: " << endl;
+		asciiFile2 << "  # Vertex count [(int)]: " << endl;
 		asciiFile2 << meshes[i].vertexCount << endl;	//* Binary data
 
 		asciiFile2 << "    //^ Mesh " << i << " Header " <<  " --------------------" << endl << endl;
 		
 		// 4  Vertex data
-		for (unsigned int j = 0; j < meshData[i].vertexCount; j++)
+		for (int j = 0; j < meshData[i].vertexCount; j++)
 		{
 			asciiFile2 << "  * " << j << " Vertex position / " << "uv / " << "normal / " << "tangent / " << "binormal " << "[(float) * 14]" << endl;
 			//v Binary data
@@ -253,9 +240,32 @@ int main(int argc, char** argv)
 		asciiFile2 << materials[i].normal << endl;	//* Binary data
 
 	}
+
+	// - 4 Lights
+	// *Add light ascii writing
+	// Swap meshes size for light vector size or kaputt										// TODO **********************
+	for (int i = 0; i < meshes.size(); i++)
+	{
+		asciiFile2 << "    // Light " << i << " --------------------" << endl;
+
+		// 1 Light name
+		asciiFile2 << "  # Light name [(char) * 256]: " << endl;
+		//asciiFile2 << *name* << endl;	//* Binary data
+
+		// 2 Light data
+		//asciiFile2 << "  # Position, rotation, strength etc***************** << "[(float) * -number-]" << endl;
+		//*v Binary data (visual)
+		//asciiFile2 << (float)light.something[0] << ", " << (float)light.something[0] << ", " << (float)light.something[0] << endl;
+
+	}
+
 	asciiFile2.close();
 
-	// Binary file
+	// ===== Binary file file =====
+	// This is used to directly write binary data to the file
+	// Binary data is as expected hard to read and isn't formated in a readableway even when turned into
+	// it's relevant type when read (ex int, float, etc). It's up to the reader to know how it was formated
+	// and format it in the same way upon reading.
 	ofstream binFile2(BINARY_FILE, ofstream::binary);
 
 	// - 1 File Header
@@ -277,10 +287,19 @@ int main(int argc, char** argv)
 	// - 3 Materials
 	for (int i = 0; i < materials.size(); i++)
 	{
-
 		binFile2.write((char*)&materials[i], sizeof(PhongMaterial));
 	}
+
+	// - 4 Light
+	// *Add light binary writing																	// TODO **********************
+	for (int i = 0; i < meshes.size(); i++)
+	{
+		//binFile2.write((char*)&*--LightElement--, sizeof(--size--));
+	}
 	binFile2.close();
+
+
+
 
 
     // Destroy all objects created by the FBX SDK.
@@ -332,12 +351,8 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 			break;
 
 		case FbxNodeAttribute::eMesh:
-			//DisplayMesh(pNode);
-			
-			// Here we can find out that this node is a mesh
-			// We could utilize this in the vector and only push back things we know are meshes once we aquire them
-			// Alternatively extract this from the swtich case since this is a template for printing information to 
-			// the command prompt with no regards to format or similar
+			// This applies the relevant type (1 = mesh) and adds
+			// The relevant transformation data
 			type = 1;
 			GetMesh(pNode, mesh, mats);
 			mesh->translation[0] = (float)translation[0];
@@ -351,25 +366,18 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 			mesh->scale[2] = (float)scale[2];
 			break;
 
-
 		case FbxNodeAttribute::eCamera:
 			//DisplayCamera(pNode);
 			break;
 
 		case FbxNodeAttribute::eLight:
 			type = 2;
-			//DisplayLight(pNode);
-			//PrintLight(pNode);
+			// *Add light functions
+			// *Add light position and rotation									// TODO **********************
 			break;
 
 		}
 	}
-
-	/*DisplayUserProperties(pNode);
-	DisplayTarget(pNode);
-	DisplayPivotsAndLimits(pNode);
-	DisplayTransformPropagation(pNode);*/
-	//PrintGeometricTransform(pNode);
 
 	// Loops through all the children of this node
 	for (int i = 0; i < pNode->GetChildCount(); i++)
@@ -385,6 +393,7 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 			break;
 		case 2:
 			// Light
+			// * Add light push_back											// TODO **********************
 			break;
 		case 3:
 			// Light
