@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 		fillMesh.scale[0] = meshData[i].scale[0];
 		fillMesh.scale[1] = meshData[i].scale[1];
 		fillMesh.scale[2] = meshData[i].scale[2];
-		// hiearchy
+		// hierarchy
 		fillMesh.isChild = meshData[i].isChild;
 		if (fillMesh.isChild)
 		{
@@ -189,7 +189,7 @@ int main(int argc, char** argv)
 		//v Binary data
 		asciiFile2 << (float)groups[i].scale[0] << ", " << (float)groups[i].scale[1] << ", " << (float)groups[i].scale[2] << endl;
 
-		// 2.3 Hiearchy
+		// 2.3 hierarchy
 		asciiFile2 << "  # Is child: " << endl;
 		asciiFile2 << groups[i].isChild << endl;	//* Binary data
 		asciiFile2 << "  # Parent Name: " << endl;
@@ -226,7 +226,7 @@ int main(int argc, char** argv)
 		asciiFile2 << "  * " << "Scale vector: " << endl;
 		//v Binary data
 		asciiFile2 << (float)meshData[i].scale[0] << ", " << (float)meshData[i].scale[1] << ", " << (float)meshData[i].scale[2] << endl;
-		// 3.4 Hiearchy
+		// 3.4 hierarchy
 		asciiFile2 << "  # Is child: " << endl;
 		asciiFile2 << meshes[i].isChild << endl;	//* Binary data
 		asciiFile2 << "  # Parent Name: " << endl;
