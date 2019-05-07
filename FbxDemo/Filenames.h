@@ -31,15 +31,17 @@ using namespace std;
 
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/RoomTest.fbx";
+const std::string IN_FBX_FILEPATH = "FBX_Files/NewCubeTest.fbx";
 const std::string ASCII_FILE = "Exported_Files/RoomTestASCII.txt";
 const std::string BINARY_FILE = "Exported_Files/RoomTest.meh";
 
 struct MehHeader
 {
 	unsigned int meshCount;
+	unsigned int meshGroupCount;
 	unsigned int materialCount;
-
+	unsigned int pointLightCount;
+	unsigned int dirLightCount;
 };
 
 struct PhongMaterial
@@ -53,13 +55,6 @@ struct PhongMaterial
 
 	char albedo[256];
 	char normal[256];
-};
-
-struct GeoTransformations
-{
-	float translation[3];
-	float rotation[3];
-	float scale[3];
 };
 
 struct Vertex
@@ -84,10 +79,14 @@ struct Mesh
 {
 	char name[256];
 	char materialName[256];
-	//char childName;
+	float transformation[3];
+	float rotation[3];
+	float scale[3];
 
-	int type;
-	int link;
+	char childName[256];
+
+	unsigned int type;
+	unsigned int link;
 
 	unsigned int vertexCount;
 };
@@ -96,6 +95,9 @@ struct MeshHolder
 {
 	char name[256];
 	char materialName[256];
+	float translation[3];
+	float rotation[3];
+	float scale[3];
 	vector<MeshHolder> children;
 
 	// Might make this into a vector
@@ -103,12 +105,19 @@ struct MeshHolder
 	unsigned int vertexCount;
 	Vertex* vertices;
 
-	int type;
-	int link;
+	unsigned int type;
+	unsigned int link;
 
 	// Constructor that may not be needed
 	MeshHolder()
 	{
 		vertices = nullptr;
 	}
+};
+
+struct Transformation
+{
+	float translation[3];
+	float rotation[3];
+	float scale[3];
 };

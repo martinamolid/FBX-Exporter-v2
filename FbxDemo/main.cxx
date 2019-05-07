@@ -42,13 +42,10 @@ using namespace std;
 
 // Local function prototypes.
 int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats);
-void DisplayTarget(FbxNode* pNode);
 void DisplayTransformPropagation(FbxNode* pNode);
-string PrintGeometricTransform(FbxNode* pNode);
-void DisplayMetaData(FbxScene* pScene);
+void PrintGeometricTransform(FbxNode* pNode);
+void DisplayPivotsAndLimits(FbxNode* pNode);
 
-
-static bool gVerbose = true;
 
 int main(int argc, char** argv)
 {
@@ -98,59 +95,74 @@ int main(int argc, char** argv)
 	FbxNode* sceneRootNode = fileScene->GetRootNode();
 
 	// Elements in scene (including childs of childs)
-	int elementCount = sceneRootNode->GetChildCount(true);
+	unsigned int elementCount = sceneRootNode->GetChildCount(true);
 
 	// Vector of all the meshes in the scene
-	vector<MeshHolder> meshes;
+	MehHeader fileHeader;
+	vector<MeshHolder> meshData;
+	vector<Mesh> meshes;
 	vector<PhongMaterial> materials;
-
-	// Reserves memory
-	meshes.reserve(elementCount);
 
 	// Right now will pushback one mesh for every _element_ in the scene
 	// Need to look over how to distinguish mesh from other objects
 	if (sceneRootNode)
 	{
-		for (int i = 0; i < elementCount; i++)
+		for (unsigned int i = 0; i < elementCount; i++)
 		{
-			
 			MeshHolder fillMesh;
 			int type = PrintContent(sceneRootNode->GetChild(i), &fillMesh, materials);
 
-			if (type == 1)
+			switch (type)
 			{
-				meshes.push_back(fillMesh);
-			}
-				
-			if (type == 2)
-			{
-				// Do something
+			case 1:
+				meshData.push_back(fillMesh);
+				break;
+			case 2:
+				// Light
+				break;
+			case 3:
+				// Light
+				break;
+			case 4:
+				// Something
+				break;
+			case 5:
+				// Something
+				break;
+
+			default:
+				break;
 			}
 				
 		}
 	}
 
 	// Parse writing data
-	vector<Mesh> meshData;
-	for (int i = 0; i < meshes.size(); i++)
+	fileHeader.meshCount = (unsigned int)meshData.size();
+	fileHeader.meshGroupCount = 0;
+	fileHeader.materialCount = (unsigned int)materials.size();
+	fileHeader.pointLightCount = 0;
+	fileHeader.dirLightCount = 0;
+
+	for (int i = 0; i < meshData.size(); i++)
 	{
-		Mesh newMesh;
+		Mesh fillMesh;
+
+		// Parse name
 		for (int j = 0; j < NAME_SIZE; j++)
-		{
-			newMesh.name[j] = meshes[i].name[j];
-		}
-		
+			fillMesh.name[j] = meshData[i].name[j];
 		for (int j = 0; j < NAME_SIZE; j++)
-		{
-			newMesh.materialName[j] = meshes[i].materialName[j];
-		}
+			fillMesh.materialName[j] = meshData[i].materialName[j];
 
-		newMesh.type = meshes[i].type;
-		newMesh.link = meshes[i].link;
+		fillMesh.transformation[0] = 0.0f;
+		fillMesh.transformation[1] = 0.0f;
+		fillMesh.transformation[2] = 0.0f;
 
-		newMesh.vertexCount = meshes[i].vertexCount;
+		fillMesh.type = meshData[i].type;
+		fillMesh.link = meshData[i].link;
+		fillMesh.vertexCount = meshData[i].vertexCount;
 
-		meshData.push_back(newMesh);
+		meshes.push_back(fillMesh);
 	}
 
 
@@ -166,46 +178,48 @@ int main(int argc, char** argv)
 	// - 1 File header
 	asciiFile2 << "  //v File Header --------------------" << endl;
 	asciiFile2 << "  # Mesh count [(unsigned int)]" << endl;
-	asciiFile2 << meshData.size() << endl;				//* Binary data
+	asciiFile2 << meshes.size() << endl;				//* Binary data
 
 	asciiFile2 << "  # Material count [(unsigned int)]" << endl;
 	asciiFile2 << materials.size() << endl;				//* Binary data
 	asciiFile2 << "  //^ File Header --------------------" << endl << endl;
 	// - 2 Meshes
-	for (int i = 0; i < meshData.size(); i++)
+	for (int i = 0; i < meshes.size(); i++)
 	{
 		asciiFile2 << "    //v Mesh " << i << " Header " << " --------------------" << endl << endl;
 
 		// 1 Mesh name
 		asciiFile2 << "  # Mesh name [(char) * 256]: " << endl;
-		asciiFile2 << meshData[i].name << endl;			//* Binary data
+		asciiFile2 << meshes[i].name << endl;			//* Binary data
 
-		// 2  Material count
+		// 2  Material name
 		asciiFile2 << "  # Material name [(char) * 256]: " << endl;		
-		asciiFile2 << meshData[i].materialName << endl;	//* Binary data
+		asciiFile2 << meshes[i].materialName << endl;	//* Binary data
 
+		// 3  Entity name
 		asciiFile2 << "  # Attribute type [(int)]: " << endl;
-		asciiFile2 << meshData[i].type << endl;	//* Binary data
+		asciiFile2 << meshes[i].type << endl;	//* Binary data
 
+		// 4  Entity link
 		asciiFile2 << "  # Attribute link [(int)]: " << endl;
-		asciiFile2 << meshData[i].link << endl;	//* Binary data
+		asciiFile2 << meshes[i].link << endl;	//* Binary data
 
-		// 3 Vertex count
+		// 5 Vertex count
 		asciiFile2 << "  # Vertex count [(unsigned int)]: " << endl;
-		asciiFile2 << meshData[i].vertexCount << endl;	//* Binary data
+		asciiFile2 << meshes[i].vertexCount << endl;	//* Binary data
 
 		asciiFile2 << "    //^ Mesh " << i << " Header " <<  " --------------------" << endl << endl;
 		
 		// 4  Vertex data
-		for (unsigned int j = 0; j < meshes[i].vertexCount; j++)
+		for (unsigned int j = 0; j < meshData[i].vertexCount; j++)
 		{
 			asciiFile2 << "  * " << j << " Vertex position / " << "uv / " << "normal / " << "tangent / " << "binormal " << "[(float) * 14]" << endl;
 			//v Binary data
-			asciiFile2 << (float)meshes[i].vertices[j].position[0] << ", "	<< (float)meshes[i].vertices[j].position[1] << ", "		<< (float)meshes[i].vertices[j].position[2] << endl; 
-			asciiFile2 << (float)meshes[i].vertices[j].uv[0] << ", "		<< (float)meshes[i].vertices[j].uv[1] << ", "			<< endl;
-			asciiFile2 << (float)meshes[i].vertices[j].normal[0] << ", "	<< (float)meshes[i].vertices[j].normal[1] << ", "		<< (float)meshes[i].vertices[j].normal[2] << endl;
-			asciiFile2 << (float)meshes[i].vertices[j].tangent[0] << ", "	<< (float)meshes[i].vertices[j].tangent[1] << ", "		<< (float)meshes[i].vertices[j].tangent[2] << endl;
-			asciiFile2 << (float)meshes[i].vertices[j].bitangent[0] << ", "	<< (float)meshes[i].vertices[j].bitangent[1] << ", "	<< (float)meshes[i].vertices[j].bitangent[2] << endl << endl;
+			asciiFile2 << (float)meshData[i].vertices[j].position[0] << ", "	<< (float)meshData[i].vertices[j].position[1] << ", "		<< (float)meshData[i].vertices[j].position[2] << endl; 
+			asciiFile2 << (float)meshData[i].vertices[j].uv[0] << ", "		<< (float)meshData[i].vertices[j].uv[1] << ", "			<< endl;
+			asciiFile2 << (float)meshData[i].vertices[j].normal[0] << ", "	<< (float)meshData[i].vertices[j].normal[1] << ", "		<< (float)meshData[i].vertices[j].normal[2] << endl;
+			asciiFile2 << (float)meshData[i].vertices[j].tangent[0] << ", "	<< (float)meshData[i].vertices[j].tangent[1] << ", "		<< (float)meshData[i].vertices[j].tangent[2] << endl;
+			asciiFile2 << (float)meshData[i].vertices[j].bitangent[0] << ", "	<< (float)meshData[i].vertices[j].bitangent[1] << ", "	<< (float)meshData[i].vertices[j].bitangent[2] << endl << endl;
 			//^ Binary data
 		}
 		asciiFile2 << endl;
@@ -238,7 +252,6 @@ int main(int argc, char** argv)
 		asciiFile2 << "  # Normal name [(char) * 256]: " << endl;
 		asciiFile2 << materials[i].normal << endl;	//* Binary data
 
-
 	}
 	asciiFile2.close();
 
@@ -246,21 +259,19 @@ int main(int argc, char** argv)
 	ofstream binFile2(BINARY_FILE, ofstream::binary);
 
 	// - 1 File Header
-	unsigned int meshAmount = (unsigned int)meshData.size();
+	unsigned int meshAmount = (unsigned int)meshes.size();
 	binFile2.write((char*)&meshAmount, sizeof(unsigned int));
 	unsigned int materialAmount = (unsigned int)materials.size();
 	binFile2.write((char*)&materialAmount, sizeof(unsigned int));
 
 	// - 2 Meshes
-	for (int i = 0; i < meshAmount; i++)
+	for (unsigned int i = 0; i < meshAmount; i++)
 	{
-		// --- MM: Getting, formatting and printing mesh name ---
-
 		// 1 Mesh header
-		binFile2.write((char*)&meshData[i], sizeof(Mesh));
+		binFile2.write((char*)&meshes[i], sizeof(Mesh));
 
 		// 2 Vertex data (pos, uv, norm, tangent, bitangent)
-		binFile2.write((char*)meshes[i].vertices, sizeof(Vertex) * meshData[i].vertexCount);
+		binFile2.write((char*)meshData[i].vertices, sizeof(Vertex) * meshes[i].vertexCount);
 	}
 
 	// - 3 Materials
@@ -297,6 +308,11 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 	// All the cases represent the different types
 	FbxNodeAttribute::EType lAttributeType;
 	int type = 0;
+	// ================
+
+	FbxVector4 translation = pNode->EvaluateLocalTranslation();
+	FbxVector4 rotation = pNode->EvaluateLocalRotation();
+	FbxVector4 scale = pNode->EvaluateLocalScaling();
 
 	if (pNode->GetNodeAttribute() == NULL)
 	{
@@ -309,9 +325,6 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 		switch (lAttributeType)
 		{
 		default:
-			break;
-		case FbxNodeAttribute::eMarker:
-			//DisplayMarker(pNode);
 			break;
 
 		case FbxNodeAttribute::eSkeleton:
@@ -327,15 +340,17 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 			// the command prompt with no regards to format or similar
 			type = 1;
 			GetMesh(pNode, mesh, mats);
+			mesh->translation[0] = (float)translation[0];
+			mesh->translation[1] = (float)translation[1];
+			mesh->translation[2] = (float)translation[2];
+			mesh->rotation[2] = (float)rotation[2];
+			mesh->rotation[2] = (float)rotation[2];
+			mesh->rotation[2] = (float)rotation[2];
+			mesh->scale[2] = (float)scale[2];
+			mesh->scale[2] = (float)scale[2];
+			mesh->scale[2] = (float)scale[2];
 			break;
 
-		case FbxNodeAttribute::eNurbs:
-			//DisplayNurb(pNode);
-			break;
-
-		case FbxNodeAttribute::ePatch:
-			//DisplayPatch(pNode);
-			break;
 
 		case FbxNodeAttribute::eCamera:
 			//DisplayCamera(pNode);
@@ -347,9 +362,6 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 			//PrintLight(pNode);
 			break;
 
-		case FbxNodeAttribute::eLODGroup:
-			//DisplayLodGroup(pNode);
-			break;
 		}
 	}
 
@@ -364,23 +376,37 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 	{
 		MeshHolder fillMesh;
 		
-		PrintContent(pNode->GetChild(i), &fillMesh, mats);
+		int ctype = PrintContent(pNode->GetChild(i), &fillMesh, mats);
 
-		mesh->children.push_back(fillMesh);
+		switch (ctype)
+		{
+		case 1:
+			mesh->children.push_back(fillMesh);
+			break;
+		case 2:
+			// Light
+			break;
+		case 3:
+			// Light
+			break;
+		case 4:
+			// Something
+			break;
+		case 5:
+			// Something
+			break;
+
+		default:
+			break;
+
+		}
 	}
+
 
 
 	return type;
 }
 
-
-void DisplayTarget(FbxNode* pNode)
-{
-    if(pNode->GetTarget() != NULL)
-    {
-        //DisplayString("    Target Name: ", (char *) pNode->GetTarget()->GetName());
-    }
-}
 
 void DisplayTransformPropagation(FbxNode* pNode)
 {
@@ -460,95 +486,26 @@ void DisplayTransformPropagation(FbxNode* pNode)
 
 ========================================================================================================================
 */
-string PrintGeometricTransform(FbxNode* pNode)
+void PrintGeometricTransform(FbxNode* pNode)
 {
     FbxVector4 lTmpVector;
-	GeoTransformations transformation;
-	string pString;
-
-	ofstream binFile(BINARY_FILE, ofstream::binary | ofstream::app);
-
+	Transformation transformation;
 
     // Translation
     lTmpVector = pNode->GetGeometricTranslation(FbxNode::eSourcePivot);
-	pString += "        Translation: " + to_string(lTmpVector[0]) + " " + to_string(lTmpVector[1]) + " " + to_string(lTmpVector[2]) + "\n";
 	transformation.translation[0] = (float)lTmpVector[0];
 	transformation.translation[1] = (float)lTmpVector[1];
 	transformation.translation[2] = (float)lTmpVector[2];
 
     // Rotation
     lTmpVector = pNode->GetGeometricRotation(FbxNode::eSourcePivot);
-	pString += "        Rotation:    " + to_string(lTmpVector[0]) + " " + to_string(lTmpVector[1]) + " " + to_string(lTmpVector[2]) + "\n";
 	transformation.rotation[0] = (float)lTmpVector[0];
 	transformation.rotation[1] = (float)lTmpVector[1];
 	transformation.rotation[2] = (float)lTmpVector[2];
 
     // Scaling
     lTmpVector = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
-	pString += "        Scaling:     " + to_string(lTmpVector[0]) + " " + to_string(lTmpVector[1]) + " " + to_string(lTmpVector[2]) + "\n";
-	pString += "\n";
 	transformation.scale[0] = (float)lTmpVector[0];
 	transformation.scale[1] = (float)lTmpVector[1];
 	transformation.scale[2] = (float)lTmpVector[2];
-
-	binFile.write((char*)&transformation, sizeof(GeoTransformations));
-
-	binFile.close();
-	return pString;
 }
-
-
-/*
-========================================================================================================================
-
-	DisplayMetaData has been printing empty in all the test runs of the original FBX SDK, it might not be useful to us.
-
-	// Martina Molid
-
-========================================================================================================================
-*/
-void DisplayMetaData(FbxScene* pScene)
-{
-    FbxDocumentInfo* sceneInfo = pScene->GetSceneInfo();
-    if (sceneInfo)
-    {
-        FBXSDK_printf("\n\n--------------------\nMeta-Data\n--------------------\n\n");
-        FBXSDK_printf("    Title: %s\n", sceneInfo->mTitle.Buffer());
-        FBXSDK_printf("    Subject: %s\n", sceneInfo->mSubject.Buffer());
-        FBXSDK_printf("    Author: %s\n", sceneInfo->mAuthor.Buffer());
-        FBXSDK_printf("    Keywords: %s\n", sceneInfo->mKeywords.Buffer());
-        FBXSDK_printf("    Revision: %s\n", sceneInfo->mRevision.Buffer());
-        FBXSDK_printf("    Comment: %s\n", sceneInfo->mComment.Buffer());
-
-        FbxThumbnail* thumbnail = sceneInfo->GetSceneThumbnail();
-        if (thumbnail)
-        {
-            FBXSDK_printf("    Thumbnail:\n");
-
-            switch (thumbnail->GetDataFormat())
-            {
-            case FbxThumbnail::eRGB_24:
-                FBXSDK_printf("        Format: RGB\n");
-                break;
-            case FbxThumbnail::eRGBA_32:
-                FBXSDK_printf("        Format: RGBA\n");
-                break;
-            }
-
-            switch (thumbnail->GetSize())
-            {
-	        default:
-	            break;
-            case FbxThumbnail::eNotSet:
-                FBXSDK_printf("        Size: no dimensions specified (%ld bytes)\n", thumbnail->GetSizeInBytes());
-                break;
-            case FbxThumbnail::e64x64:
-                FBXSDK_printf("        Size: 64 x 64 pixels (%ld bytes)\n", thumbnail->GetSizeInBytes());
-                break;
-            case FbxThumbnail::e128x128:
-                FBXSDK_printf("        Size: 128 x 128 pixels (%ld bytes)\n", thumbnail->GetSizeInBytes());
-            }
-        }
-    }
-}
-
