@@ -106,13 +106,13 @@ int main(int argc, char** argv)
 	{
 		Mesh fillMesh;
 
-		// name
+		// Name
 		for (int j = 0; j < NAME_SIZE; j++)
 			fillMesh.name[j] = meshData[i].name[j];
-		// material
+		// Material
 		for (int j = 0; j < NAME_SIZE; j++)
 			fillMesh.materialName[j] = meshData[i].materialName[j];
-		// transformation
+		// Transformation
 		fillMesh.translation[0] = meshData[i].translation[0];
 		fillMesh.translation[1] = meshData[i].translation[1];
 		fillMesh.translation[2] = meshData[i].translation[2];
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 		fillMesh.scale[0] = meshData[i].scale[0];
 		fillMesh.scale[1] = meshData[i].scale[1];
 		fillMesh.scale[2] = meshData[i].scale[2];
-		// hierarchy
+		// Hierarchy
 		fillMesh.isChild = meshData[i].isChild;
 		if (fillMesh.isChild)
 		{
@@ -132,10 +132,10 @@ int main(int argc, char** argv)
 			// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
 		}
 		fillMesh.parentType = meshData[i].parentType;
-		// custom attribute
+		// Custom attribute
 		fillMesh.type = meshData[i].type;
 		fillMesh.link = meshData[i].link;
-		// vertex count
+		// Vertex count
 		fillMesh.vertexCount = meshData[i].vertexCount;
 		meshes.push_back(fillMesh);
 	}
@@ -154,17 +154,16 @@ int main(int argc, char** argv)
 	// - 1 File header
 	asciiFile2 << "  //v File Header --------------------" << endl;
 	asciiFile2 << "  # Mesh count" << endl;
-	asciiFile2 << fileHeader.meshCount << endl;				//* Binary data
+	asciiFile2 << fileHeader.meshCount << endl;					//* Binary data
 	asciiFile2 << "  # Mesh Group count" << endl;
 	asciiFile2 << fileHeader.groupCount << endl;				//* Binary data
 	asciiFile2 << "  # Material count" << endl;
 	asciiFile2 << fileHeader.materialCount << endl;				//* Binary data
 	asciiFile2 << "  # Point Light count" << endl;
-	asciiFile2 << fileHeader.pointLightCount << endl;				//* Binary data
+	asciiFile2 << fileHeader.pointLightCount << endl;			//* Binary data
 	asciiFile2 << "  # Directional count" << endl;
 	asciiFile2 << fileHeader.dirLightCount << endl;				//* Binary data
 	asciiFile2 << "  //^ File Header --------------------" << endl << endl;
-
 
 	// - 2 Groups
 	for (int i = 0; i < fileHeader.groupCount; i++)
@@ -173,7 +172,7 @@ int main(int argc, char** argv)
 
 		// 2.1 Group name
 		asciiFile2 << "  # Group name: " << endl;
-		asciiFile2 << groups[i].name << endl;			//* Binary data
+		asciiFile2 << groups[i].name << endl;					//* Binary data
 		// 2.2 Transformation
 
 		asciiFile2 << "  * "  << "Translation vector: " << endl;
@@ -189,18 +188,15 @@ int main(int argc, char** argv)
 		//v Binary data
 		asciiFile2 << (float)groups[i].scale[0] << ", " << (float)groups[i].scale[1] << ", " << (float)groups[i].scale[2] << endl;
 
-		// 2.3 hierarchy
+		// 2.3 Hierarchy
 		asciiFile2 << "  # Is child: " << endl;
-		asciiFile2 << groups[i].isChild << endl;	//* Binary data
+		asciiFile2 << groups[i].isChild << endl;				//* Binary data
 		asciiFile2 << "  # Parent Name: " << endl;
-		asciiFile2 << groups[i].parentName << endl;	//* Binary data
+		asciiFile2 << groups[i].parentName << endl;				//* Binary data
 		asciiFile2 << "  # Parent type: " << endl;
-		asciiFile2 << groups[i].parentType << endl;	//* Binary data
-
+		asciiFile2 << groups[i].parentType << endl;				//* Binary data
 
 		asciiFile2 << "    //^ Group " << i << " --------------------" << endl << endl;
-
-		
 		asciiFile2 << endl;
 	}
 
@@ -211,36 +207,32 @@ int main(int argc, char** argv)
 
 		// 3.1 Mesh name
 		asciiFile2 << "  # Mesh name: " << endl;
-		asciiFile2 << meshes[i].name << endl;			//* Binary data
+		asciiFile2 << meshes[i].name << endl;					//* Binary data
 		// 3.2  Material name
 		asciiFile2 << "  # Material name : " << endl;		
-		asciiFile2 << meshes[i].materialName << endl;	//* Binary data
+		asciiFile2 << meshes[i].materialName << endl;			//* Binary data
 		// 3.3 Transformation
 		asciiFile2 << "  * " << "Translation vector: " << endl;
-		//v Binary data
-		asciiFile2 << (float)meshData[i].translation[0] << ", " << (float)meshData[i].translation[1] << ", " << (float)meshData[i].translation[2] << endl;
-
+		asciiFile2 << (float)meshData[i].translation[0] << ", " << (float)meshData[i].translation[1] << ", " << (float)meshData[i].translation[2] << endl; 	//* Binary data
 		asciiFile2 << "  * " << "Rotation vector: " << endl;
-		//v Binary data
-		asciiFile2 << (float)meshData[i].rotation[0] << ", " << (float)meshData[i].rotation[1] << ", " << (float)meshData[i].rotation[2] << endl;
+		asciiFile2 << (float)meshData[i].rotation[0] << ", " << (float)meshData[i].rotation[1] << ", " << (float)meshData[i].rotation[2] << endl; 			//* Binary data
 		asciiFile2 << "  * " << "Scale vector: " << endl;
-		//v Binary data
-		asciiFile2 << (float)meshData[i].scale[0] << ", " << (float)meshData[i].scale[1] << ", " << (float)meshData[i].scale[2] << endl;
+		asciiFile2 << (float)meshData[i].scale[0] << ", " << (float)meshData[i].scale[1] << ", " << (float)meshData[i].scale[2] << endl; 					//* Binary data
 		// 3.4 hierarchy
 		asciiFile2 << "  # Is child: " << endl;
-		asciiFile2 << meshes[i].isChild << endl;	//* Binary data
+		asciiFile2 << meshes[i].isChild << endl;				//* Binary data
 		asciiFile2 << "  # Parent Name: " << endl;
-		asciiFile2 << meshes[i].parentName << endl;	//* Binary data
+		asciiFile2 << meshes[i].parentName << endl;				//* Binary data
 		asciiFile2 << "  # Parent type: " << endl;
-		asciiFile2 << meshes[i].parentType << endl;	//* Binary data
+		asciiFile2 << meshes[i].parentType << endl;				//* Binary data
 		// 3.5  Entity attributes
 		asciiFile2 << "  # Attribute type: " << endl;
-		asciiFile2 << meshes[i].type << endl;	//* Binary data
+		asciiFile2 << meshes[i].type << endl;					//* Binary data
 		asciiFile2 << "  # Attribute link: " << endl;
-		asciiFile2 << meshes[i].link << endl;	//* Binary data
+		asciiFile2 << meshes[i].link << endl;					//* Binary data
 		// 3.6 Vertex count
 		asciiFile2 << "  # Vertex count: " << endl;
-		asciiFile2 << meshes[i].vertexCount << endl;	//* Binary data
+		asciiFile2 << meshes[i].vertexCount << endl;			//* Binary data
 
 		asciiFile2 << "    //^ Mesh " << i << " Header " <<  " --------------------" << endl << endl;
 		
@@ -265,7 +257,7 @@ int main(int argc, char** argv)
 
 		// 5.1 Material name
 		asciiFile2 << "  # Material name: " << endl;
-		asciiFile2 << materials[i].name << endl;	//* Binary data
+		asciiFile2 << materials[i].name << endl;				//* Binary data
 
 		// 5.2 Material data
 		asciiFile2 << "  # Ambient, diffuse, specular, emissive, opacity" << endl;
@@ -279,11 +271,11 @@ int main(int argc, char** argv)
 
 		// 5.3 Albedo filename
 		asciiFile2 << "  # Albedo name: " << endl;
-		asciiFile2 << materials[i].albedo << endl;	//* Binary data
+		asciiFile2 << materials[i].albedo << endl;				//* Binary data
 
 		// 5.4 Normal filename
 		asciiFile2 << "  # Normal name: " << endl;
-		asciiFile2 << materials[i].normal << endl;	//* Binary data
+		asciiFile2 << materials[i].normal << endl;				//* Binary data
 
 	}
 	// - 6 Lights
@@ -312,32 +304,30 @@ int main(int argc, char** argv)
 	// it's relevant type when read (ex int, float, etc). It's up to the reader to know how it was formated
 	// and format it in the same way upon reading.
 	//	========================================================================
-	ofstream binFile2(BINARY_FILE, ofstream::binary);	// This is where out the filepath should be added comming in from the CMD
+	ofstream binaryFile(BINARY_FILE, ofstream::binary);	// This is where out the filepath should be added comming in from the CMD
 	// - 1 File Header
-	int meshAmount = (int)meshes.size();
-	binFile2.write((char*)&fileHeader, sizeof(MehHeader));
+	binaryFile.write((char*)&fileHeader, sizeof(MehHeader));
 	// - 2 Groups
 	for (int i = 0; i < fileHeader.groupCount; i++)
 	{
 		// 1 Mesh header
-		binFile2.write((char*)&groups[i], sizeof(Group));
-
+		binaryFile.write((char*)&groups[i], sizeof(Group));
 	}
 
 	// - 3 Meshes
 	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
 		// 3.1 Mesh header
-		binFile2.write((char*)&meshes[i], sizeof(Mesh));
+		binaryFile.write((char*)&meshes[i], sizeof(Mesh));
 
 		// 3.2 Vertex data (pos, uv, norm, tangent, bitangent)
-		binFile2.write((char*)meshData[i].vertices, sizeof(Vertex) * meshes[i].vertexCount);
+		binaryFile.write((char*)meshData[i].vertices, sizeof(Vertex) * meshes[i].vertexCount);
 	}
 
 	// - 4 Materials
 	for (int i = 0; i < fileHeader.materialCount; i++)
 	{
-		binFile2.write((char*)&materials[i], sizeof(PhongMaterial));
+		binaryFile.write((char*)&materials[i], sizeof(PhongMaterial));
 	}
 
 	// - 4 Light
@@ -347,7 +337,7 @@ int main(int argc, char** argv)
 	{
 		//binFile2.write((char*)&*--LightElement--, sizeof(--size--));
 	}
-	binFile2.close();
+	binaryFile.close();
 
 
 
