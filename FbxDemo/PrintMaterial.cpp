@@ -30,7 +30,6 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 		if (materialNode) 
 		{
 			materialCount = materialNode->GetMaterialCount();
-
 			// MM: Allocates memory for the materials array, based on how many materials are to be read
 			materials = new PhongMaterial[materialCount];
 		}
