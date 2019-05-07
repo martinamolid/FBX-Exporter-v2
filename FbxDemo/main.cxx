@@ -266,7 +266,6 @@ int main(int argc, char** argv)
 	// - 3 Materials
 	for (int i = 0; i < materials.size(); i++)
 	{
-
 		binFile2.write((char*)&materials[i], sizeof(PhongMaterial));
 	}
 	binFile2.close();

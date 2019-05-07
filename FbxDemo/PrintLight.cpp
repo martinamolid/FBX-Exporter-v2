@@ -1,7 +1,6 @@
 #include "PrintLight.h"
 
 #include "Filenames.h"
-#include "FormatName.h"
 
 #include <fstream>
 #include <iostream>

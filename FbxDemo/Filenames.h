@@ -31,9 +31,9 @@ using namespace std;
 
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/RoomTest.fbx";
-const std::string ASCII_FILE = "Exported_Files/RoomTestASCII.txt";
-const std::string BINARY_FILE = "Exported_Files/RoomTest.meh";
+const std::string IN_FBX_FILEPATH = "FBX_Files/TextureTest.fbx";
+const std::string ASCII_FILE = "Exported_Files/TexTestASCII.txt";
+const std::string BINARY_FILE = "Exported_Files/TextureTest.meh";
 
 struct MehHeader
 {
