@@ -11,10 +11,8 @@
 
 
 /*========================================================================================================================
-
 	This is the main file of the FBX to Custom Binary Converter for Group 3 in UD1446: Small Game Project
 	To decide the filenames for output, see Filenames.h
-	// Martina Molid
 ========================================================================================================================*/
 
 // MM: The Common.h include has a lot of the FBX SDK defined functions and types like FBXSDK_printf
@@ -37,8 +35,6 @@ using namespace std;
 
 // Local function prototypes.
 int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats);
-void DisplayTransformPropagation(FbxNode* pNode);
-void PrintGeometricTransform(FbxNode* pNode);
 void DisplayPivotsAndLimits(FbxNode* pNode);
 
 
@@ -55,29 +51,21 @@ int main(int argc, char** argv)
 		inParameters.push_back(argv[i]);
 	}
 
-
     // Prepare the FBX SDK.
     InitializeSdkObjects(lSdkManager, fileScene);
-    // Load the scene.
-	
-	// MM: This opens the .fbx file to be read from
+
+	// This is wherethe in fbx filepath should be added comming in from the CMD
 	FbxString lFilePath("");
+	lFilePath = IN_FBX_FILEPATH.c_str();
+	// Load the scene.
+	lResult = LoadScene(lSdkManager, fileScene, lFilePath.Buffer());
 
-	if( lFilePath.IsEmpty() )
-	{
-		lFilePath = IN_FBX_FILEPATH.c_str();
-		lResult = LoadScene(lSdkManager, fileScene, lFilePath.Buffer());
-        //lResult = false;
-	}
 
-	/*========================================================================================================================	
-		This is where main calls all major printing functions.
-		All void Display-- functions are part of the original FBX SDK, while the string Print-- functions are re-worked versions of the Display-- functions,
-			which returns a string with the information into the ASCII file and prints binary into the binary file.
-		The out-commented things below are leftovers from the FBX SDK, but is a good guide as to where you might want to implement upcoming things.
-		// Martina Molid
-	========================================================================================================================*/
-
+	//	===== Data collection ==================================================
+	//	This is where all the data from the FBX scene is collected.
+	//	The data is then stored in the loader while it's parsed and written
+	//	to the custom format
+	//	========================================================================
 
 	// The root scene node that contains all the elements
 	FbxNode* sceneRootNode = fileScene->GetRootNode();
@@ -153,20 +141,20 @@ int main(int argc, char** argv)
 	}
 
 
-	// ===== Ascii debug file =====
+	// ===== Ascii debug file ==================================================
 	// This file is only for debugging purposes and is used to read and compare the data to the binary data.
 	// Note that the binary could in some cases be correct but the data here could be wrong or not updated and vice verse.
 	// This should be in 100% sync with what is printed to the binary file at all times for debugging to be accurate.
 	// Everything noted as *Binary data is what is going to be written to the binary file later on. Everything else are comments or debug information.
+	//	========================================================================
 	ofstream asciiFile2;
-	asciiFile2.open(ASCII_FILE);	// MM: Opens the ASCII file to write the ASCII strings to
+	asciiFile2.open(ASCII_FILE);	// This is where out the filepath should be added comming in from the CMD
 	asciiFile2 << fixed << setprecision(10) ;
 
 	// - 1 File header
 	asciiFile2 << "  //v File Header --------------------" << endl;
 	asciiFile2 << "  # Mesh count [(int)]" << endl;
 	asciiFile2 << meshes.size() << endl;				//* Binary data
-
 	asciiFile2 << "  # Material count [(int)]" << endl;
 	asciiFile2 << materials.size() << endl;				//* Binary data
 	asciiFile2 << "  //^ File Header --------------------" << endl << endl;
@@ -211,7 +199,6 @@ int main(int argc, char** argv)
 		}
 		asciiFile2 << endl;
 	}
-
 	// - 3 Materials
 	for (int i = 0; i < materials.size(); i++)
 	{
@@ -240,7 +227,6 @@ int main(int argc, char** argv)
 		asciiFile2 << materials[i].normal << endl;	//* Binary data
 
 	}
-
 	// - 4 Lights
 	// *Add light ascii writing
 	// Swap meshes size for light vector size or kaputt										// TODO **********************
@@ -258,22 +244,21 @@ int main(int argc, char** argv)
 		//asciiFile2 << (float)light.something[0] << ", " << (float)light.something[0] << ", " << (float)light.something[0] << endl;
 
 	}
-
 	asciiFile2.close();
 
-	// ===== Binary file file =====
+	
+	// ===== Binary file file ==================================================
 	// This is used to directly write binary data to the file
 	// Binary data is as expected hard to read and isn't formated in a readableway even when turned into
 	// it's relevant type when read (ex int, float, etc). It's up to the reader to know how it was formated
 	// and format it in the same way upon reading.
-	ofstream binFile2(BINARY_FILE, ofstream::binary);
-
+	//	========================================================================
+	ofstream binFile2(BINARY_FILE, ofstream::binary);	// This is where out the filepath should be added comming in from the CMD
 	// - 1 File Header
 	unsigned int meshAmount = (unsigned int)meshes.size();
 	binFile2.write((char*)&meshAmount, sizeof(unsigned int));
 	unsigned int materialAmount = (unsigned int)materials.size();
 	binFile2.write((char*)&materialAmount, sizeof(unsigned int));
-
 	// - 2 Meshes
 	for (unsigned int i = 0; i < meshAmount; i++)
 	{
@@ -300,8 +285,6 @@ int main(int argc, char** argv)
 
 
 
-
-
     // Destroy all objects created by the FBX SDK.
     DestroySdkObjects(lSdkManager, lResult);
 
@@ -309,18 +292,9 @@ int main(int argc, char** argv)
     return 0;
 }
 
-/* 
-========================================================================================================================
-
+/*========================================================================================================================
 	PrintContent recursively prints all information in a node (and its children), determined by the type of the node.
-	For now, only meshes are printed out, but all original code from the FBX SDK is left in here as a reference
-		to how and where they print skeletons and lights.
-
-	// Martina Molid
-
-========================================================================================================================
-*/
-
+========================================================================================================================*/
 int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 {
 	// This will check what type this node is
@@ -416,105 +390,3 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& mats)
 	return type;
 }
 
-
-void DisplayTransformPropagation(FbxNode* pNode)
-{
-    FBXSDK_printf("    Transformation Propagation\n");
-
-    // 
-    // Rotation Space
-    //
-    EFbxRotationOrder lRotationOrder;
-    pNode->GetRotationOrder(FbxNode::eSourcePivot, lRotationOrder);
-
-    FBXSDK_printf("        Rotation Space: ");
-
-    switch (lRotationOrder)
-    {
-    case eEulerXYZ: 
-        FBXSDK_printf("Euler XYZ\n");
-        break;
-    case eEulerXZY:
-        FBXSDK_printf("Euler XZY\n");
-        break;
-    case eEulerYZX:
-        FBXSDK_printf("Euler YZX\n");
-        break;
-    case eEulerYXZ:
-        FBXSDK_printf("Euler YXZ\n");
-        break;
-    case eEulerZXY:
-        FBXSDK_printf("Euler ZXY\n");
-        break;
-    case eEulerZYX:
-        FBXSDK_printf("Euler ZYX\n");
-        break;
-    case eSphericXYZ:
-        FBXSDK_printf("Spheric XYZ\n");
-        break;
-    }
-
-    //
-    // Use the Rotation space only for the limits
-    // (keep using eEulerXYZ for the rest)
-    //
-    FBXSDK_printf("        Use the Rotation Space for Limit specification only: %s\n",
-        pNode->GetUseRotationSpaceForLimitOnly(FbxNode::eSourcePivot) ? "Yes" : "No");
-
-
-    //
-    // Inherit Type
-    //
-    FbxTransform::EInheritType lInheritType;
-    pNode->GetTransformationInheritType(lInheritType);
-
-    FBXSDK_printf("        Transformation Inheritance: ");
-
-    switch (lInheritType)
-    {
-    case FbxTransform::eInheritRrSs:
-        FBXSDK_printf("RrSs\n");
-        break;
-    case FbxTransform::eInheritRSrs:
-        FBXSDK_printf("RSrs\n");
-        break;
-    case FbxTransform::eInheritRrs:
-        FBXSDK_printf("Rrs\n");
-        break;
-    }
-}
-
-
-/*
-========================================================================================================================
-
-	PrintGeometricTransform gets the object's geometric transformations and prints it to the ASCII and binary file.
-		The problem right now is that it has to be called before or after the node printing.
-
-	// Martina Molid
-
-========================================================================================================================
-*/
-void PrintGeometricTransform(FbxNode* pNode)
-{
-    FbxVector4 lTmpVector;
-	Transformation transformation;
-
-    // Translation
-    lTmpVector = pNode->GetGeometricTranslation(FbxNode::eSourcePivot);
-	transformation.translation[0] = (float)lTmpVector[0];
-	transformation.translation[1] = (float)lTmpVector[1];
-	transformation.translation[2] = (float)lTmpVector[2];
-
-    // Rotation
-    lTmpVector = pNode->GetGeometricRotation(FbxNode::eSourcePivot);
-	transformation.rotation[0] = (float)lTmpVector[0];
-	transformation.rotation[1] = (float)lTmpVector[1];
-	transformation.rotation[2] = (float)lTmpVector[2];
-
-    // Scaling
-    lTmpVector = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
-	transformation.scale[0] = (float)lTmpVector[0];
-	transformation.scale[1] = (float)lTmpVector[1];
-	transformation.scale[2] = (float)lTmpVector[2];
-}
