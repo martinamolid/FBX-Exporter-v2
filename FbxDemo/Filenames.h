@@ -37,33 +37,11 @@ const std::string BINARY_FILE = "Exported_Files/RoomTest.meh";
 
 struct MehHeader
 {
-	unsigned int meshCount;
-	unsigned int meshGroupCount;
-	unsigned int materialCount;
-	unsigned int pointLightCount;
-	unsigned int dirLightCount;
-};
-
-struct PhongMaterial
-{
-	char name[256];
-	float ambient[3];
-	float diffuse[3];
-	float specular[3];
-	float emissive[3];
-	float opacity;
-
-	char albedo[256];
-	char normal[256];
-};
-
-struct Vertex
-{
-	float position[3];
-	float uv[2];
-	float normal[3];
-	float tangent[3];
-	float bitangent[3];
+	int meshCount;
+	int meshGroupCount;
+	int materialCount;
+	int pointLightCount;
+	int dirLightCount;
 };
 
 struct MeshGroup
@@ -91,6 +69,33 @@ struct Mesh
 	unsigned int vertexCount;
 };
 
+struct PhongMaterial
+{
+	char name[256];
+	float ambient[3];
+	float diffuse[3];
+	float specular[3];
+	float emissive[3];
+	float opacity;
+
+	char albedo[256];
+	char normal[256];
+};
+
+struct Vertex
+{
+	float position[3];
+	float uv[2];
+	float normal[3];
+	float tangent[3];
+	float bitangent[3];
+};
+
+
+
+
+
+// ===== Temporary fbx data =====
 struct MeshHolder
 {
 	char name[256];
@@ -113,11 +118,4 @@ struct MeshHolder
 	{
 		vertices = nullptr;
 	}
-};
-
-struct Transformation
-{
-	float translation[3];
-	float rotation[3];
-	float scale[3];
 };

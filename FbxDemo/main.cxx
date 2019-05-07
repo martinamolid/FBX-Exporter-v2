@@ -112,13 +112,19 @@ int main(int argc, char** argv)
 		}
 	}
 
-	// Parse writing data
+	//	===== Parse data ==================================================
+	//	This section will parse and data that isn't yet fully loaded in for 
+	//	the writing of the custom file
+	//	===================================================================
+
+	// ==== Header ====
 	fileHeader.meshCount = (int)meshData.size();
 	fileHeader.meshGroupCount = 0;
 	fileHeader.materialCount = (int)materials.size();
-	fileHeader.pointLightCount = 0;
-	fileHeader.dirLightCount = 0;
+	fileHeader.pointLightCount = 0;											// TODO **********************
+	fileHeader.dirLightCount = 0;											// TODO **********************
 
+	// ==== Meshes ====
 	for (int i = 0; i < meshData.size(); i++)
 	{
 		Mesh fillMesh;
@@ -154,12 +160,12 @@ int main(int argc, char** argv)
 	// - 1 File header
 	asciiFile2 << "  //v File Header --------------------" << endl;
 	asciiFile2 << "  # Mesh count [(int)]" << endl;
-	asciiFile2 << meshes.size() << endl;				//* Binary data
+	asciiFile2 << fileHeader.meshCount << endl;				//* Binary data
 	asciiFile2 << "  # Material count [(int)]" << endl;
-	asciiFile2 << materials.size() << endl;				//* Binary data
+	asciiFile2 << fileHeader.materialCount << endl;				//* Binary data
 	asciiFile2 << "  //^ File Header --------------------" << endl << endl;
 	// - 2 Meshes
-	for (int i = 0; i < meshes.size(); i++)
+	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
 		asciiFile2 << "    //v Mesh " << i << " Header " << " --------------------" << endl << endl;
 
@@ -200,7 +206,7 @@ int main(int argc, char** argv)
 		asciiFile2 << endl;
 	}
 	// - 3 Materials
-	for (int i = 0; i < materials.size(); i++)
+	for (int i = 0; i < fileHeader.materialCount; i++)
 	{
 		asciiFile2 << "    // Material " << i << " --------------------" << endl;
 
@@ -228,9 +234,9 @@ int main(int argc, char** argv)
 
 	}
 	// - 4 Lights
-	// *Add light ascii writing
-	// Swap meshes size for light vector size or kaputt										// TODO **********************
-	for (int i = 0; i < meshes.size(); i++)
+	// *Add light ascii writing (1 forloop for each type, copy this one for more light types)
+	// Swap meshes size for light vector size or kaputt														// TODO **********************
+	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
 		asciiFile2 << "    // Light " << i << " --------------------" << endl;
 
@@ -255,12 +261,12 @@ int main(int argc, char** argv)
 	//	========================================================================
 	ofstream binFile2(BINARY_FILE, ofstream::binary);	// This is where out the filepath should be added comming in from the CMD
 	// - 1 File Header
-	unsigned int meshAmount = (unsigned int)meshes.size();
-	binFile2.write((char*)&meshAmount, sizeof(unsigned int));
-	unsigned int materialAmount = (unsigned int)materials.size();
-	binFile2.write((char*)&materialAmount, sizeof(unsigned int));
+	int meshAmount = (int)meshes.size();
+	binFile2.write((char*)&meshAmount, sizeof(int));
+	int materialAmount = (int)materials.size();
+	binFile2.write((char*)&materialAmount, sizeof(int));
 	// - 2 Meshes
-	for (unsigned int i = 0; i < meshAmount; i++)
+	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
 		// 1 Mesh header
 		binFile2.write((char*)&meshes[i], sizeof(Mesh));
@@ -270,14 +276,15 @@ int main(int argc, char** argv)
 	}
 
 	// - 3 Materials
-	for (int i = 0; i < materials.size(); i++)
+	for (int i = 0; i < fileHeader.materialCount; i++)
 	{
 		binFile2.write((char*)&materials[i], sizeof(PhongMaterial));
 	}
 
 	// - 4 Light
-	// *Add light binary writing																	// TODO **********************
-	for (int i = 0; i < meshes.size(); i++)
+	// *Add light binary writing (1 forloop for each type, copy this one for more light types)				// TODO **********************
+	// Change meshCount to lights or kaputt
+	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
 		//binFile2.write((char*)&*--LightElement--, sizeof(--size--));
 	}
