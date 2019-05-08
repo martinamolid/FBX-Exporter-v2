@@ -4,4 +4,4 @@
 #include "Filenames.h"
 #include "DisplayCommon.h"
 
-void PrintLight(FbxNode* pNode, DirLight* dirLight, SpotLight* spotLight );
+int PrintLight(FbxNode* pNode, DirLight* dirLight, PointLight* pointLight);
