@@ -41,7 +41,7 @@ using namespace std;
 #pragma comment(lib,"zlib-mt.lib")
 
 // Local function prototypes.
-int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats);
+int PrintContent(FbxNode* pNode, MeshHolder* mesh, DirLight* light, SpotLight* spotLight, vector<PhongMaterial2>& mats);
 void DisplayTarget(FbxNode* pNode);
 void DisplayTransformPropagation(FbxNode* pNode);
 string PrintGeometricTransform(FbxNode* pNode);
@@ -102,6 +102,8 @@ int main(int argc, char** argv)
 
 	// Vector of all the meshes in the scene
 	vector<MeshHolder> meshes;
+	vector<DirLight> DirLights;
+	vector<SpotLight> spotLights;
 	vector<PhongMaterial2> materials;
 
 	// Reserves memory
@@ -115,7 +117,10 @@ int main(int argc, char** argv)
 		{
 			
 			MeshHolder fillMesh;
-			int type = PrintContent(sceneRootNode->GetChild(i), &fillMesh, materials);
+			DirLight fillDirLight;
+			SpotLight fillSpotLight;
+
+			int type = PrintContent(sceneRootNode->GetChild(i), &fillMesh, &fillDirLight, &fillSpotLight, materials);
 
 			if (type == 1)
 			{
@@ -125,6 +130,7 @@ int main(int argc, char** argv)
 			if (type == 2)
 			{
 				// Do something
+				
 			}
 				
 		}
@@ -295,7 +301,7 @@ int main(int argc, char** argv)
 ========================================================================================================================
 */
 
-int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats)
+int PrintContent(FbxNode* pNode, MeshHolder* mesh, DirLight* dirLight, SpotLight* spotLight, vector<PhongMaterial2>& mats)
 {
 	// This will check what type this node is
 	// All the cases represent the different types
@@ -348,7 +354,7 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats)
 		case FbxNodeAttribute::eLight:
 			type = 2;
 			//DisplayLight(pNode);
-			//PrintLight(pNode);
+			PrintLight(pNode, dirLight, spotLight);
 			break;
 
 		case FbxNodeAttribute::eLODGroup:
@@ -367,8 +373,10 @@ int PrintContent(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial2>& mats)
 	for (int i = 0; i < pNode->GetChildCount(); i++)
 	{
 		MeshHolder fillMesh;
+		DirLight fillDirLight;
+		SpotLight fillSpotLight;
 		
-		PrintContent(pNode->GetChild(i), &fillMesh, mats);
+		PrintContent(pNode->GetChild(i), &fillMesh, &fillDirLight, &fillSpotLight, mats);
 
 		mesh->children.push_back(fillMesh);
 	}

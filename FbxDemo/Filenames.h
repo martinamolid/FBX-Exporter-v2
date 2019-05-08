@@ -31,7 +31,7 @@ using namespace std;
 
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/RoomTest.fbx";
+const std::string IN_FBX_FILEPATH = "FBX_Files/LightsTest.fbx";
 const std::string ASCII_FILE = "Exported_Files/RoomTestASCII.txt";
 const std::string BINARY_FILE = "Exported_Files/RoomTest.meh";
 
@@ -95,4 +95,14 @@ struct MeshHolder
 	{
 		vertices = nullptr;
 	}
+};
+
+struct DirLight {
+	float position[3];
+	float color[3];
+};
+
+struct SpotLight {
+	float position[3];
+	float color[3];
 };
