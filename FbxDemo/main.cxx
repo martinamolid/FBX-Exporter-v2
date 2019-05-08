@@ -235,7 +235,7 @@ int main(int argc, char** argv)
 		asciiFile2 << "    //^ Mesh " << i << " Header " <<  " --------------------" << endl << endl;
 		
 		// 3.* Vertex data
-		for (int j = 0; j < meshData[i].vertexCount; j++)
+		for (int j = 0; j < meshes[i].vertexCount; j++)
 		{
 			asciiFile2 << "  * " << j << " Vertex position / " << "uv / " << "normal / " << "tangent / " << "binormal " << endl;
 			//v Binary data
