@@ -9,4 +9,4 @@
 #include <fstream>
 using namespace std;
 
-void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHolder* mesh);
+void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHolder* mesh);

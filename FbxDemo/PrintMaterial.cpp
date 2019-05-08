@@ -17,12 +17,12 @@
 ========================================================================================================================
 */
 
-void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHolder* mesh)
+void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHolder* mesh)
 {
 	int materialCount = 0;
 	FbxNode* materialNode = NULL;
 
-	PhongMaterial2 *materials = nullptr;
+	PhongMaterial *materials = nullptr;
 
 	if (pGeometry) 
 	{
@@ -30,9 +30,8 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHol
 		if (materialNode) 
 		{
 			materialCount = materialNode->GetMaterialCount();
-
 			// MM: Allocates memory for the materials array, based on how many materials are to be read
-			materials = new PhongMaterial2[materialCount];
+			materials = new PhongMaterial[materialCount];
 		}
 	}
 
@@ -126,12 +125,14 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHol
 								pivotPos = index;
 						}
 						string fileNameEd = fileName.substr(pivotPos+1, strlen(fileName.c_str()));
+						string finalAlbedo = "Resources/Textures/";
+						finalAlbedo += fileNameEd;
 
 						//Send string to struct
-						for (int j = 0; j < strlen(fileNameEd.c_str()); j++)
+						for (int j = 0; j < strlen(finalAlbedo.c_str()); j++)
 						{
-							materials[matIndex].albedo[j] = fileNameEd[j];
-							materials[matIndex].albedo[strlen(fileNameEd.c_str())] = '\0';
+							materials[matIndex].albedo[j] = finalAlbedo[j];
+							materials[matIndex].albedo[strlen(finalAlbedo.c_str())] = '\0';
 						}
 						
 					}
@@ -151,12 +152,14 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHol
 								pivotPos = index;
 						}
 						string fileNameEd = fileName.substr(pivotPos + 1, strlen(fileName.c_str()));
+						string finalNormal = "Resources/Textures/";
+						finalNormal += fileNameEd;
 
 						//Send string to struct
-						for (int j = 0; j < strlen(fileNameEd.c_str()); j++)
+						for (int j = 0; j < strlen(finalNormal.c_str()); j++)
 						{
-							materials[matIndex].normal[j] = fileNameEd[j];
-							materials[matIndex].normal[strlen(fileNameEd.c_str())] = '\0';
+							materials[matIndex].normal[j] = finalNormal[j];
+							materials[matIndex].normal[strlen(finalNormal.c_str())] = '\0';
 						}
 
 					}
@@ -205,6 +208,7 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial2>& mats, MeshHol
 	}
 
 	// Special case for the first material
+	// Might not be needed
 	if (materialCount && mats.size() == 0)
 	{
 		mats.push_back(materials[0]);

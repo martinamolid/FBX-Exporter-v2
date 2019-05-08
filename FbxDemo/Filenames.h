@@ -31,11 +31,52 @@ using namespace std;
 
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/LightsTest.fbx";
-const std::string ASCII_FILE = "Exported_Files/RoomTestASCII.txt";
-const std::string BINARY_FILE = "Exported_Files/RoomTest.meh";
+const std::string IN_FBX_FILEPATH = "FBX_Files/TextureTest.fbx";
+const std::string ASCII_FILE = "Exported_Files/TexTestASCII.txt";
+const std::string BINARY_FILE = "Exported_Files/TextureTest.meh";
 
-struct PhongMaterial2
+struct MehHeader
+{
+	int meshCount;
+	int groupCount;
+	int materialCount;
+	int pointLightCount;
+	int dirLightCount;
+};
+
+struct Group	// Type 0;
+{
+	char name[256];
+
+	float translation[3];
+	float rotation[3];
+	float scale[3];
+
+	bool isChild;
+	char parentName[256];
+	int parentType;
+};
+
+struct Mesh		// Type 1;
+{
+	char name[256];
+	char materialName[256];
+
+	float translation[3];
+	float rotation[3];
+	float scale[3];
+
+	bool isChild;
+	char parentName[256];
+	int parentType;
+
+	int type;
+	int link;
+
+	unsigned int vertexCount;
+};
+
+struct PhongMaterial
 {
 	char name[256];
 	float ambient[3];
@@ -48,13 +89,6 @@ struct PhongMaterial2
 	char normal[256];
 };
 
-struct GeoTransformations
-{
-	float translation[3];
-	float rotation[3];
-	float scale[3];
-};
-
 struct Vertex
 {
 	float position[3];
@@ -64,27 +98,26 @@ struct Vertex
 	float bitangent[3];
 };
 
-struct Mesh
-{
-	char name[256];
-	char materialName[256];
-	//char childName;
 
-	int type;
-	int link;
 
-	unsigned int vertexCount;
-};
 
+
+// ===== Temporary fbx data =====
 struct MeshHolder
 {
 	char name[256];
 	char materialName[256];
-	vector<MeshHolder> children;
+	float translation[3];
+	float rotation[3];
+	float scale[3];
+
+	bool isChild;
+	char parentName[256];
+	int parentType;
 
 	// Might make this into a vector
 	//vector<Vertex> vertices;
-	unsigned int vertexCount;
+	int vertexCount;
 	Vertex* vertices;
 
 	int type;
