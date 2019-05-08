@@ -15,83 +15,80 @@
 ========================================================================================================================
 */
 
-struct Light {
-	//char name[NAME_SIZE];
-	//char type[NAME_SIZE];
-	bool castLight;
-	float colour[3];
-	float intensity;
-	float outAngle;
-	float fog;
-};
-
-string PrintLight(FbxNode* pNode)
+int PrintLight(FbxNode* pNode, DirLight* dirlight, PointLight* pointLight)
 {
 	FbxLight* lLight = (FbxLight*)pNode->GetNodeAttribute();
-	Light lightInfo;
-	string pString;
 
-	ofstream binFile(BINARY_FILE, ofstream::binary | ofstream::app);
-
-	pString += PrintString("Light Name: ", (char *)pNode->GetName());
+	DisplayString("Light Name: ", (char *)pNode->GetName());
 
 	string tempName = (char *)pNode->GetName();
-	int nameLength = strlen(tempName.c_str());
+	int nameLength = (int)strlen(tempName.c_str());
 	char lightName[NAME_SIZE];
 	for (int i = 0; i < nameLength; i++) {
 		lightName[i] = tempName[i];
 	}
 	lightName[nameLength] = '\0'; // Puts a \0 at the end of the name, still printing out whitespace into the binary file
 	//std::cout << "Light name: " << lightName << endl;
-	binFile.write((char*)lightName, sizeof(char) * NAME_SIZE);
 
-	//DisplayMetaDataConnections(lLight);
+	DisplayMetaDataConnections(lLight);
 
-	const char* lLightTypes[] = { "Point", "Directional", "Spot", "Area", "Volume" };
+	const char* lLightTypes[] = { "Point", "Directional" };
 
-	pString += PrintString("    Type: ", lLightTypes[lLight->LightType.Get()]);
+	FbxDouble3 c = lLight->Color.Get();
+	FbxColor lColor(c[0], c[1], c[2]);
+	DisplayColor("        Default Color: ", lColor);
+
+	int type = 0;
+
+	if (lLightTypes[lLight->LightType.Get()] == "Directional")
+	{
+		for (int i = 0; i < 3; i++)
+			dirlight->color[i] = (float)c[i];
+
+		dirlight->intensity = (float)(lLight->Intensity.Get()/ 100);
+		type = 1;
+	}
+
+	if (lLightTypes[lLight->LightType.Get()] == "Point")
+	{
+		for (int i = 0; i < 3; i++)
+			pointLight->color[i] = (float)c[i];
+
+		pointLight->intensity = (float)(lLight->Intensity.Get() / 100);
+		type = 2;
+		//build
+	}
+
+	DisplayString("    Type: ", lLightTypes[lLight->LightType.Get()]);
 	tempName = lLightTypes[lLight->LightType.Get()];
-	nameLength = strlen(tempName.c_str());
+	nameLength = (int)strlen(tempName.c_str());
 	char lightType[NAME_SIZE];
 	for (int i = 0; i < nameLength; i++) {
 		lightType[i] = tempName[i];
 	}
 	lightType[nameLength] = '\0'; // Puts a \0 at the end of the name, still printing out whitespace into the binary file
 	//std::cout << "Light type: " << lightType << endl;
-	binFile.write((char*)lightType, sizeof(char) * NAME_SIZE);
 
-	pString += PrintBool("    Cast Light: ", lLight->CastLight.Get());
-	lightInfo.castLight = lLight->CastLight.Get();
+	DisplayBool("    Cast Light: ", lLight->CastLight.Get());
+	//lightInfo.castLight = lLight->CastLight.Get();
 
-	if (!(lLight->FileName.Get().IsEmpty()))
-	{
-		// MM: Failsafe?
-		pString += PrintString("    Gobo");
+	DisplayString("    Default Animation Values");
+	//lightInfo.colour[0] = (float)c[0];
+	//lightInfo.colour[1] = (float)c[1];
+	//lightInfo.colour[2] = (float)c[2];
 
-		pString += PrintString("        File Name: \"", lLight->FileName.Get().Buffer(), "\"");
-		pString += PrintBool("        Ground Projection: ", lLight->DrawGroundProjection.Get());
-		pString += PrintBool("        Volumetric Projection: ", lLight->DrawVolumetricLight.Get());
-		pString += PrintBool("        Front Volumetric Projection: ", lLight->DrawFrontFacingVolumetricLight.Get());
-	}
+	DisplayDouble("        Default Intensity: ", lLight->Intensity.Get());
+	//lightInfo.intensity = (float)lLight->Intensity.Get();
+	DisplayDouble("        Default Outer Angle: ", lLight->OuterAngle.Get());
+	//lightInfo.outAngle = (float)lLight->OuterAngle.Get();
+	DisplayDouble("        Default Fog: ", lLight->Fog.Get());
+	//lightInfo.fog = (float)lLight->Fog.Get();
+	DisplayDouble("        Decay Type: ", lLight->DecayType.Get());
 
-	//pString += PrintString("    Default Animation Values");
+	DisplayDouble("        Near Attenuation Start: ", lLight->NearAttenuationStart.Get());
+	DisplayDouble("        Near Attenuation End: ", lLight->NearAttenuationEnd.Get());
+	DisplayDouble("        Far Attenuation Start: ", lLight->FarAttenuationStart.Get());
+	DisplayDouble("        Far Attenuation End: ", lLight->FarAttenuationEnd.Get());
 
-	FbxDouble3 c = lLight->Color.Get();
-	FbxColor lColor(c[0], c[1], c[2]);
-	pString += PrintColor("        Default Color: ", lColor);
-	lightInfo.colour[0] = (float)c[0];
-	lightInfo.colour[1] = (float)c[1];
-	lightInfo.colour[2] = (float)c[2];
-
-	pString += PrintDouble("        Default Intensity: ", lLight->Intensity.Get());
-	lightInfo.intensity = (float)lLight->Intensity.Get();
-	pString += PrintDouble("        Default Outer Angle: ", lLight->OuterAngle.Get());
-	lightInfo.outAngle = (float)lLight->OuterAngle.Get();
-	pString += PrintDouble("        Default Fog: ", lLight->Fog.Get());
-	lightInfo.fog = (float)lLight->Fog.Get();
-
-	binFile.write((char*)&lightInfo, sizeof(Light));
-
-	binFile.close();
-	return pString;
+	return type;
 }

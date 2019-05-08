@@ -1,5 +1,7 @@
 #pragma once
 
 #include "PrintInfo.h"
+#include "Filenames.h"
+#include "DisplayCommon.h"
 
-string PrintLight(FbxNode* pNode);
+int PrintLight(FbxNode* pNode, DirLight* dirLight, PointLight* pointLight);

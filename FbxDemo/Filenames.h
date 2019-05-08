@@ -129,3 +129,16 @@ struct MeshHolder
 		vertices = nullptr;
 	}
 };
+
+struct DirLight {
+	float position[3];
+	float rotation[3];
+	float color[3];
+	float intensity;
+};
+
+struct PointLight {
+	float position[3];
+	float color[3];
+	float intensity;
+};
