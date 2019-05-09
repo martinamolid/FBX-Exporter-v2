@@ -34,7 +34,7 @@ using namespace std;
 #pragma comment(lib,"zlib-mt.lib")
 
 // Local function prototypes.
-void PrintContent(FbxNode* pNode, vector<Group>& fillGroup, vector<MeshHolder>& mesh, vector<PhongMaterial>& mats, bool isChild, int parentType);
+void PrintContent(FbxNode* pNode, vector<Group>& fillGroup, vector<MeshHolder>& mesh, vector<PhongMaterial>& mats, vector<DirLight>& dirLight, vector<PointLight>& pointLight, bool isChild, int parentType);
 void DisplayPivotsAndLimits(FbxNode* pNode);
 
 
@@ -73,6 +73,9 @@ int main(int argc, char** argv)
 	// Elements in scene (including childs of childs when true)
 	int elementCount = sceneRootNode->GetChildCount();
 
+	// Vector of all the meshes in the scene
+	vector<DirLight> dirLights;
+	vector<PointLight> pointLight;
 	// Vectors of elements in the scene
 	vector<MeshHolder> meshData;
 
@@ -85,7 +88,7 @@ int main(int argc, char** argv)
 	{
 		for (int i = 0; i < elementCount; i++)
 		{
-			PrintContent(sceneRootNode->GetChild(i), groups, meshData, materials, false, -1);		
+			PrintContent(sceneRootNode->GetChild(i), groups, meshData, materials, dirLights, pointLight, false, -1);
 		}
 	}
 
@@ -98,8 +101,8 @@ int main(int argc, char** argv)
 	fileHeader.meshCount = (int)meshData.size();
 	fileHeader.groupCount = (int)groups.size();;
 	fileHeader.materialCount = (int)materials.size();
-	fileHeader.pointLightCount = 0;											// TODO **********************
-	fileHeader.dirLightCount = 0;											// TODO **********************
+	fileHeader.dirLightCount = (int)dirLights.size();
+	fileHeader.pointLightCount = (int)pointLight.size();
 
 	// ==== Meshes ====
 	for (int i = 0; i < meshData.size(); i++)
@@ -235,7 +238,7 @@ int main(int argc, char** argv)
 		asciiFile2 << "    //^ Mesh " << i << " Header " <<  " --------------------" << endl << endl;
 		
 		// 3.* Vertex data
-		for (int j = 0; j < meshData[i].vertexCount; j++)
+		for (int j = 0; j < meshes[i].vertexCount; j++)
 		{
 			asciiFile2 << "  * " << j << " Vertex position / " << "uv / " << "normal / " << "tangent / " << "binormal " << endl;
 			//v Binary data
@@ -277,19 +280,33 @@ int main(int argc, char** argv)
 	}
 	// - 6 Lights
 	// *Add light ascii writing (1 forloop for each type, copy this one for more light types)
-	// Swap meshes size for light vector size or kaputt														// TODO **********************
-	for (int i = 0; i < fileHeader.meshCount; i++)
+	// Swap meshes size for light vector size or kaputt
+	for (int i = 0; i < fileHeader.dirLightCount; i++)
 	{
 		asciiFile2 << "    // Light " << i << " --------------------" << endl;
 
-		// 1 Light name
-		asciiFile2 << "  # Light name: " << endl;
-		//asciiFile2 << *name* << endl;	//* Binary data
+		// 2 Light data
+		asciiFile2 << "  # Position, rotation, intensity, color " << "[(float) *  10 ]" << endl;
+		//*v Binary data (visual)
+		asciiFile2 << (float)dirLights[i].position[0] << ", " << (float)dirLights[i].position[1] << ", " << (float)dirLights[i].position[2] << endl;
+		asciiFile2 << (float)dirLights[i].rotation[0] << ", " << (float)dirLights[i].rotation[1] << ", " << (float)dirLights[i].rotation[2] << endl;
+
+		asciiFile2 << (float)dirLights[i].intensity << endl;
+		asciiFile2 << (float)dirLights[i].color[0] << ", " << (float)dirLights[i].color[1] << ", " << (float)dirLights[i].color[2] << endl;
+
+	}
+
+	for (int i = 0; i < fileHeader.pointLightCount; i++)
+	{
+		asciiFile2 << "    // Light " << i << " --------------------" << endl;
 
 		// 2 Light data
-		//asciiFile2 << "  # Position, rotation, strength etc***************** << "[(float) * -number-]" << endl;
+		asciiFile2 << "  # Position, rotation, intensity, color " << "[(float) *  10 ]" << endl;
 		//*v Binary data (visual)
-		//asciiFile2 << (float)light.something[0] << ", " << (float)light.something[0] << ", " << (float)light.something[0] << endl;
+		asciiFile2 << (float)pointLight[i].position[0] << ", " << (float)pointLight[i].position[1] << ", " << (float)pointLight[i].position[2] << endl;
+
+		asciiFile2 << (float)pointLight[i].intensity << endl;
+		asciiFile2 << (float)pointLight[i].color[0] << ", " << (float)pointLight[i].color[1] << ", " << (float)pointLight[i].color[2] << endl;
 
 	}
 	asciiFile2.close();
@@ -328,12 +345,18 @@ int main(int argc, char** argv)
 	}
 
 	// - 4 Light
-	// *Add light binary writing (1 forloop for each type, copy this one for more light types)				// TODO **********************
+	// *Add light binary writing (1 forloop for each type, copy this one for more light types)
 	// Change meshCount to lights or kaputt
-	for (int i = 0; i < fileHeader.meshCount; i++)
+	for (int i = 0; i < fileHeader.dirLightCount; i++)
 	{
-		//binFile2.write((char*)&*--LightElement--, sizeof(--size--));
+		binaryFile.write((char*)&dirLights[i], sizeof(DirLight));
 	}
+
+	for (int i = 0; i < fileHeader.pointLightCount; i++)
+	{
+		binaryFile.write((char*)&pointLight[i], sizeof(PointLight));
+	}
+
 	binaryFile.close();
 
 
@@ -348,7 +371,7 @@ int main(int argc, char** argv)
 /*========================================================================================================================
 	PrintContent recursively prints all information in a node (and its children), determined by the type of the node.
 ========================================================================================================================*/
-void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& meshes, vector<PhongMaterial>& mats, bool isChild, int parentType)
+void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& meshes, vector<PhongMaterial>& mats, vector<DirLight>& dirLight, vector<PointLight>& pointLight, bool isChild, int parentType)
 {
 	// This will check what type this node is
 	// All the cases represent the different types
@@ -439,8 +462,30 @@ void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& mes
 			break;
 
 		case FbxNodeAttribute::eLight:
-			// *Add light functions
-			// *Add light position and rotation									// TODO **********************
+
+			DirLight fillDirLight;
+			PointLight fillPointLight;
+
+			int type = PrintLight(pNode, &fillDirLight, &fillPointLight);
+
+			if (type == 1)
+			{
+				for (int i = 0; i < 3; i++)
+				{
+					fillDirLight.position[i] = (float)translation[i];
+					fillDirLight.rotation[i] = (float)rotation[i];
+
+				}
+
+				dirLight.push_back(fillDirLight);
+			}
+			else if (type == 2)
+			{
+				for (int i = 0; i < 3; i++)
+					fillPointLight.position[i] = (float)translation[i];
+
+				pointLight.push_back(fillPointLight);
+			}
 			break;
 
 		}
@@ -449,8 +494,8 @@ void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& mes
 	// Loops through all the children of this node
 	for (int i = 0; i < pNode->GetChildCount(); i++)
 	{
-		PrintContent(pNode->GetChild(i), groups, meshes, mats, true, parentType);
+		PrintContent(pNode->GetChild(i), groups, meshes, mats, dirLight, pointLight, true, parentType);
+		//PrintContent(pNode->GetChild(i), &fillMesh, &fillDirLight, &fillSpotLight, mats);
 	}
-
 }
 
