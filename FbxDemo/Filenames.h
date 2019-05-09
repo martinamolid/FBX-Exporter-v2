@@ -61,6 +61,7 @@ struct Mesh		// Type 1;
 {
 	char name[256];
 	char materialName[256];
+	unsigned int materialID;
 
 	float translation[3];
 	float rotation[3];
@@ -128,6 +129,8 @@ struct MeshHolder
 	{
 		vertices = nullptr;
 	}
+
+	unsigned int materialID;
 };
 
 struct DirLight {

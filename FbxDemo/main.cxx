@@ -113,8 +113,9 @@ int main(int argc, char** argv)
 		for (int j = 0; j < NAME_SIZE; j++)
 			fillMesh.name[j] = meshData[i].name[j];
 		// Material
-		for (int j = 0; j < NAME_SIZE; j++)
-			fillMesh.materialName[j] = meshData[i].materialName[j];
+		/*for (int j = 0; j < NAME_SIZE; j++)
+			fillMesh.materialName[j] = meshData[i].materialName[j];*/
+		fillMesh.materialID = meshData[i].materialID;
 		// Transformation
 		fillMesh.translation[0] = meshData[i].translation[0];
 		fillMesh.translation[1] = meshData[i].translation[1];
@@ -210,8 +211,8 @@ int main(int argc, char** argv)
 		asciiFile2 << "  # Mesh name: " << endl;
 		asciiFile2 << meshes[i].name << endl;					//* Binary data
 		// 3.2  Material name
-		asciiFile2 << "  # Material name : " << endl;		
-		asciiFile2 << meshes[i].materialName << endl;			//* Binary data
+		asciiFile2 << "  # Material ID : " << endl;		
+		asciiFile2 << meshes[i].materialID << endl;			//* Binary data
 		// 3.3 Transformation
 		asciiFile2 << "  * " << "Translation vector: " << endl;
 		asciiFile2 << (float)meshData[i].translation[0] << ", " << (float)meshData[i].translation[1] << ", " << (float)meshData[i].translation[2] << endl; 	//* Binary data
