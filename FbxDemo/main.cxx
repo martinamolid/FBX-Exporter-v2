@@ -91,7 +91,7 @@ int main(int argc, char** argv)
 			PrintContent(sceneRootNode->GetChild(i), groups, meshData, materials, dirLights, pointLight, false, -1);
 		}
 	}
-
+	std::cout << "Writing to Files..." << std::endl;
 	//	===== Parse data ==================================================
 	//	This section will parse and data that isn't yet fully loaded in for 
 	//	the writing of the custom file
@@ -279,11 +279,11 @@ int main(int argc, char** argv)
 		asciiFile2 << materials[i].normal << endl;				//* Binary data
 	}
 	// - 6 Lights
-	// *Add light ascii writing (1 forloop for each type, copy this one for more light types)
+	// *Add light ascii writing (1 for loop for each type, copy this one for more light types)
 	// Swap meshes size for light vector size or kaputt
 	for (int i = 0; i < fileHeader.dirLightCount; i++)
 	{
-		asciiFile2 << "    // Light " << i << " --------------------" << endl;
+		asciiFile2 << "    // Directional Light " << i << " --------------------" << endl;
 
 		// 2 Light data
 		asciiFile2 << "  # Position, rotation, intensity, color " << "[(float) *  10 ]" << endl;
@@ -298,10 +298,10 @@ int main(int argc, char** argv)
 
 	for (int i = 0; i < fileHeader.pointLightCount; i++)
 	{
-		asciiFile2 << "    // Light " << i << " --------------------" << endl;
+		asciiFile2 << "    // Point Light " << i << " --------------------" << endl;
 
 		// 2 Light data
-		asciiFile2 << "  # Position, rotation, intensity, color " << "[(float) *  10 ]" << endl;
+		asciiFile2 << "  # Position, intensity, color " << "[(float) *  7 ]" << endl;
 		//*v Binary data (visual)
 		asciiFile2 << (float)pointLight[i].position[0] << ", " << (float)pointLight[i].position[1] << ", " << (float)pointLight[i].position[2] << endl;
 
