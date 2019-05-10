@@ -31,9 +31,9 @@ using namespace std;
 
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/Level1v3.fbx";
-const std::string ASCII_FILE = "Exported_Files/Level1v3ASCII.txt";
-const std::string BINARY_FILE = "Exported_Files/Level1v3.meh";
+const std::string IN_FBX_FILEPATH = "FBX_Files/Level1v4.fbx";
+const std::string ASCII_FILE = "Exported_Files/Level1v4.txt";
+const std::string BINARY_FILE = "Exported_Files/Level1v4.meh";
 
 struct MehHeader
 {
@@ -60,7 +60,7 @@ struct Group	// Type 0;
 struct Mesh		// Type 1;
 {
 	char name[256];
-	char materialName[256];
+	//char materialName[256];
 	unsigned int materialID;
 
 	float translation[3];
