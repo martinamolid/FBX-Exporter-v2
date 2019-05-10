@@ -191,7 +191,8 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 		if (!nameExists)
 		{
 			mats.push_back(materials[i]);
-			mesh->materialID = mats.size()-1;
+			mesh->materialID = mats.size() - 1;
+
 			for (int j = 0; j < strlen(materials[i].name); j++)
 			{
 				mesh->materialName[j] = materials[i].name[j];

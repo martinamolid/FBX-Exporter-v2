@@ -17,6 +17,9 @@
 
 // MM: The Common.h include has a lot of the FBX SDK defined functions and types like FBXSDK_printf
 #include "../Common/Common.h"
+#include "DisplaySkeleton.h"
+#include "DisplayAnimation.h"
+
 
 #include "Filenames.h"
 #include "PrintMesh.h"
@@ -92,6 +95,9 @@ int main(int argc, char** argv)
 		}
 	}
 	std::cout << "Writing to Files..." << std::endl;
+	// Animaton temp template
+	DisplayAnimation(fileScene);
+
 	//	===== Parse data ==================================================
 	//	This section will parse and data that isn't yet fully loaded in for 
 	//	the writing of the custom file
@@ -429,10 +435,6 @@ void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& mes
 			groups.push_back(fillGroup);
 			break;
 
-		case FbxNodeAttribute::eSkeleton:
-			//DisplaySkeleton(pNode);
-			break;
-
 		case FbxNodeAttribute::eMesh:
 			// This applies the relevant type (1 = mesh) and adds
 			// The relevant transformation data
@@ -458,9 +460,6 @@ void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& mes
 			meshes.push_back(fillMesh);
 			break;
 
-		case FbxNodeAttribute::eCamera:
-			//DisplayCamera(pNode);
-			break;
 
 		case FbxNodeAttribute::eLight:
 
@@ -488,6 +487,16 @@ void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& mes
 				pointLight.push_back(fillPointLight);
 			}
 			break;
+
+		//case FbxNodeAttribute::eSkeleton:
+		//	// Skeleton temp template
+		//	//DisplaySkeleton(pNode);
+		//	break;
+
+		//case FbxNodeAttribute::eCamera:
+		//	//DisplayCamera(pNode);
+		//	break;
+
 
 		}
 	}
