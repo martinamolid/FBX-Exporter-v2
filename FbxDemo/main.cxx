@@ -94,6 +94,7 @@ int main(int argc, char** argv)
 			PrintContent(sceneRootNode->GetChild(i), groups, meshData, materials, dirLights, pointLight, false, -1);
 		}
 	}
+	std::cout << "Writing to Files..." << std::endl;
 	// Animaton temp template
 	DisplayAnimation(fileScene);
 
@@ -118,8 +119,9 @@ int main(int argc, char** argv)
 		for (int j = 0; j < NAME_SIZE; j++)
 			fillMesh.name[j] = meshData[i].name[j];
 		// Material
-		for (int j = 0; j < NAME_SIZE; j++)
-			fillMesh.materialName[j] = meshData[i].materialName[j];
+		/*for (int j = 0; j < NAME_SIZE; j++)
+			fillMesh.materialName[j] = meshData[i].materialName[j];*/
+		fillMesh.materialID = meshData[i].materialID;
 		// Transformation
 		fillMesh.translation[0] = meshData[i].translation[0];
 		fillMesh.translation[1] = meshData[i].translation[1];
@@ -215,8 +217,8 @@ int main(int argc, char** argv)
 		asciiFile2 << "  # Mesh name: " << endl;
 		asciiFile2 << meshes[i].name << endl;					//* Binary data
 		// 3.2  Material name
-		asciiFile2 << "  # Material name : " << endl;		
-		asciiFile2 << meshes[i].materialName << endl;			//* Binary data
+		asciiFile2 << "  # Material ID : " << endl;		
+		asciiFile2 << meshes[i].materialID << endl;			//* Binary data
 		// 3.3 Transformation
 		asciiFile2 << "  * " << "Translation vector: " << endl;
 		asciiFile2 << (float)meshData[i].translation[0] << ", " << (float)meshData[i].translation[1] << ", " << (float)meshData[i].translation[2] << endl; 	//* Binary data
@@ -284,11 +286,11 @@ int main(int argc, char** argv)
 		asciiFile2 << materials[i].normal << endl;				//* Binary data
 	}
 	// - 6 Lights
-	// *Add light ascii writing (1 forloop for each type, copy this one for more light types)
+	// *Add light ascii writing (1 for loop for each type, copy this one for more light types)
 	// Swap meshes size for light vector size or kaputt
 	for (int i = 0; i < fileHeader.dirLightCount; i++)
 	{
-		asciiFile2 << "    // Light " << i << " --------------------" << endl;
+		asciiFile2 << "    // Directional Light " << i << " --------------------" << endl;
 
 		// 2 Light data
 		asciiFile2 << "  # Position, rotation, intensity, color " << "[(float) *  10 ]" << endl;
@@ -303,10 +305,10 @@ int main(int argc, char** argv)
 
 	for (int i = 0; i < fileHeader.pointLightCount; i++)
 	{
-		asciiFile2 << "    // Light " << i << " --------------------" << endl;
+		asciiFile2 << "    // Point Light " << i << " --------------------" << endl;
 
 		// 2 Light data
-		asciiFile2 << "  # Position, rotation, intensity, color " << "[(float) *  10 ]" << endl;
+		asciiFile2 << "  # Position, intensity, color " << "[(float) *  7 ]" << endl;
 		//*v Binary data (visual)
 		asciiFile2 << (float)pointLight[i].position[0] << ", " << (float)pointLight[i].position[1] << ", " << (float)pointLight[i].position[2] << endl;
 

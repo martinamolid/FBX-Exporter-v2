@@ -174,7 +174,7 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 		}
 	}
 
-
+	int nameAt = -1;
 	// Checks if the material already exists in the vector
 	bool nameExists = false;
 	for (int i = 0; i < materialCount; i++)
@@ -184,12 +184,14 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 			if ((string)mats[j].name == (string)materials[i].name)
 			{
 				nameExists = true;
+				nameAt = j;
 			}
 		}
 
 		if (!nameExists)
 		{
 			mats.push_back(materials[i]);
+			mesh->materialID = mats.size()-1;
 			for (int j = 0; j < strlen(materials[i].name); j++)
 			{
 				mesh->materialName[j] = materials[i].name[j];
@@ -198,6 +200,9 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 		}
 		else
 		{
+			//this num is going to be wrong as it already exists in file
+			//We need to know what position the name is at
+			mesh->materialID = nameAt;
 			for (int j = 0; j < strlen(materials[i].name); j++)
 			{
 				mesh->materialName[j] = materials[i].name[j];
@@ -212,6 +217,7 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 	if (materialCount && mats.size() == 0)
 	{
 		mats.push_back(materials[0]);
+		mesh->materialID = 0;
 		for (int j = 0; j < strlen(materials[0].name); j++)
 		{
 			mesh->materialName[j] = materials[0].name[j];
