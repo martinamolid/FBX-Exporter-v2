@@ -38,6 +38,7 @@ const std::string BINARY_FILE = "Exported_Files/BedRoomTest.meh";
 //const std::string ASCII_FILE = "Exported_Files/TestAscii.txt";
 //const std::string BINARY_FILE = "Exported_Files/TestFile.meh";
 
+// File header
 struct MehHeader
 {
 	int meshCount;
@@ -47,6 +48,7 @@ struct MehHeader
 	int dirLightCount;
 };
 
+// Grouping
 struct Group	// Type 0;
 {
 	char name[256];
@@ -60,6 +62,7 @@ struct Group	// Type 0;
 	int parentType;
 };
 
+// Mesh data
 struct Mesh		// Type 1;
 {
 	char name[256];
@@ -73,10 +76,25 @@ struct Mesh		// Type 1;
 	char parentName[256];
 	int parentType;
 
+	Skeleton skeleton;
+
 	int type;
 	int link;
 
 	unsigned int vertexCount;
+};
+
+// Vertex data
+struct Vertex
+{
+	float position[3];
+	float uv[2];
+	float normal[3];
+	float tangent[3];
+	float bitangent[3];
+
+	float bone[4];
+	float weight[4];
 };
 
 struct PhongMaterial
@@ -92,20 +110,64 @@ struct PhongMaterial
 	char normal[256];
 };
 
-struct Vertex
+// Skeleton data
+struct Skeleton
 {
-	float position[3];
-	float uv[2];
-	float normal[3];
-	float tangent[3];
-	float bitangent[3];
+	char name[256];
+	int jointCount;
+	int aniCount;
 };
 
+// Joint data
+struct Joint
+{
+	char name[256];
+	int parentIndex;
+	float invBindPose[16];
+};
 
+// Animation data
+struct Animation
+{
+	char name[256];
+	int keyframeFirst;
+	int keyframeLast;
+	float duration;
+	float rate;
+	int keyframeCount;
+};
 
+// Keyframe data
+struct KeyFrame
+{
+	int id = 0;
 
+	// local transform per joint
+	float transform[16];
+	float rotate[16];
+	float scale[16];
+};
 
-// ===== Temporary fbx data =====
+// Light data (directional)
+struct DirLight 
+{
+	float position[3];
+	float rotation[3];
+	float color[3];
+	float intensity;
+};
+
+// Light data (point)
+struct PointLight 
+{
+	float position[3];
+	float color[3];
+	float intensity;
+};
+
+//
+//
+// =============== Temporary fbx data ===============
 struct MeshHolder
 {
 	char name[256];
@@ -135,15 +197,41 @@ struct MeshHolder
 	unsigned int materialID;
 };
 
-struct DirLight {
-	float position[3];
-	float rotation[3];
-	float color[3];
-	float intensity;
-};
+struct Skeleton
+{
+	struct Joint
+	{
+		string name;
+		int parentIndex = -1;
+		FbxAMatrix invBindPose;
+	};
 
-struct PointLight {
-	float position[3];
-	float color[3];
-	float intensity;
+	struct Animation
+	{
+		struct KeyFrame
+		{
+			int id = 0;
+			// global transform per joint (could be used if no interpolation is needed!
+			vector<FbxVector4>		global_joints_T;
+			vector<FbxQuaternion>	global_joints_R;
+			vector<FbxVector4>		global_joints_S;
+
+			// local transform, good for interpolation and then making a final global.
+			vector<FbxVector4>		local_joints_T;
+			vector<FbxQuaternion>	local_joints_R;
+			vector<FbxVector4>		local_joints_S;
+		};
+
+		string name;
+		int first_kf;
+		int last_kf;
+		float duration;
+		float rate;
+		vector<KeyFrame> keyframes;
+	};
+
+	string name;
+	vector<Joint> joints;
+	vector<Animation> animations;
 };
+// =============== Temporary fbx data ===============
