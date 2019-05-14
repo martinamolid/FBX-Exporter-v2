@@ -485,7 +485,7 @@ int main(int argc, char** argv)
 		binaryFile.write((char*)&meshes[i], sizeof(Mesh));
 
 		// 3.2 Vertices
-		binaryFile.write((char*)&meshData[i].vertices, sizeof(Vertex) * meshes[i].vertexCount);
+		binaryFile.write((char*)meshData[i].vertices, sizeof(Vertex) * meshes[i].vertexCount);
 
 		// 3.3 Joints
 		for (int j = 0; j < meshes[i].skeleton.jointCount; j++)
