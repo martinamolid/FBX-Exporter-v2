@@ -1,34 +1,35 @@
 #include "PrintMesh.h"
-#include "DisplayCommon.h"
-
-//#define MAT_HEADER_LENGTH 200
-
-void GetPolygons(FbxMesh* pMesh, MeshHolder* mesh);
 
 
-void GetMesh(FbxNode* pNode, MeshHolder* mesh, vector<PhongMaterial>& materials)
+void GetMesh(FbxNode* fbxNode, MeshHolder* mesh, vector<PhongMaterial>& materials)
 {
-	FbxMesh* fbxMesh = (FbxMesh*)pNode->GetNodeAttribute();
+	FbxMesh* fbxMesh = (FbxMesh*)fbxNode->GetNodeAttribute();
+	FbxGeometry* fbxGeo = (FbxGeometry*)fbxNode->GetNodeAttribute();
 
 	// Applies the mesh name
-	int nameLength = (int)strlen(pNode->GetName());
-	string nameBuffer = pNode->GetName();
+	int nameLength = (int)strlen(fbxNode->GetName());
+	string nameBuffer = fbxNode->GetName();
 	for (int j = 0; j < nameLength; j++)
 		mesh->name[j] = nameBuffer[j];
 	mesh->name[nameLength] = '\0';
 	// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
 
-
-	//pString += PrintControlsPoints(pMesh);
 	GetPolygons(fbxMesh, mesh);
 	PrintMaterial(fbxMesh, materials, mesh);	// MM: Textures are called to be printed from PrintMaterial
-	DisplayUserProperties(pNode, mesh);
-	
+	DisplayUserProperties(fbxNode, mesh);
+	if (fbxGeo->GetDeformerCount(FbxDeformer::eSkin) > 0)
+	{
+		FbxNode* rootNode = fbxNode->GetScene()->GetRootNode();
+		for (int index = 0; index < rootNode->GetChildCount(); index++)
+			GetSkeleton(rootNode->GetChild(index), 0, -1, mesh);
+		GetSkin(fbxMesh, fbxGeo, mesh);
+	}
+
 }
 
 void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 {
-	int i, j, lPolygonCount = fbxMesh->GetPolygonCount();
+	int lPolygonCount = fbxMesh->GetPolygonCount();
 	FbxVector4* lControlPoints = fbxMesh->GetControlPoints();
 	char header[100];
 
@@ -38,45 +39,15 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 	mesh->vertices = new Vertex[vtxCount];
 
 
-	{
-		int i, lControlPointsCount = fbxMesh->GetControlPointsCount();
-		FbxVector4* lControlPoints = fbxMesh->GetControlPoints();
-
-		DisplayString("    Control Points");
-
-		for (i = 0; i < lControlPointsCount; i++)
-		{
-			DisplayInt("        Control Point ", i);
-			Display3DVector("            Coordinates: ", lControlPoints[i]);
-
-			for (int j = 0; j < fbxMesh->GetElementNormalCount(); j++)
-			{
-				FbxGeometryElementNormal* leNormals = fbxMesh->GetElementNormal(j);
-				if (leNormals->GetMappingMode() == FbxGeometryElement::eByControlPoint)
-				{
-					char header[100];
-					FBXSDK_sprintf(header, 100, "            Normal Vector: ");
-					if (leNormals->GetReferenceMode() == FbxGeometryElement::eDirect)
-						Display3DVector(header, leNormals->GetDirectArray().GetAt(i));
-				}
-			}
-		}
-	}
-
-
-
-
-
 	// MM: Builds vertices for each polygon, and adds to the vertices array we allocated memory for
 	int vertexId = 0;
-	for (i = 0; i < lPolygonCount; i++)
+	for (int p = 0; p < lPolygonCount; p++)
 	{
-		int l;
-		int lPolygonSize = fbxMesh->GetPolygonSize(i);
+		int lPolygonSize = fbxMesh->GetPolygonSize(p);
 
-		for (j = 0; j < lPolygonSize; j++)
+		for (int v = 0; v < lPolygonSize; v++)
 		{
-			int lControlPointIndex = fbxMesh->GetPolygonVertex(i, j);
+			int lControlPointIndex = fbxMesh->GetPolygonVertex(p, v);
 			if (lControlPointIndex < 0)
 			{
 				//DisplayString("            Coordinates: Invalid index found!");
@@ -85,14 +56,12 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 			else
 			{
 				// MM: Prints and adds -vertex positions- to the pString and to the vertices array
-				Print3DVector("v ", lControlPoints[lControlPointIndex]);
 				vertices[vertexId].position[0] = (float)lControlPoints[lControlPointIndex][0];
 				vertices[vertexId].position[1] = (float)lControlPoints[lControlPointIndex][1];
 				vertices[vertexId].position[2] = (float)lControlPoints[lControlPointIndex][2];
-
 			}
 
-			for (l = 0; l < fbxMesh->GetElementUVCount(); ++l)
+			for (int l = 0; l < fbxMesh->GetElementUVCount(); ++l)
 			{
 				FbxGeometryElementUV* leUV = fbxMesh->GetElementUV(l);
 				FBXSDK_sprintf(header, 100, "vt ");
@@ -122,7 +91,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 
 				case FbxGeometryElement::eByPolygonVertex:
 				{
-					int lTextureUVIndex = fbxMesh->GetTextureUVIndex(i, j);
+					int lTextureUVIndex = fbxMesh->GetTextureUVIndex(p, v);
 					switch (leUV->GetReferenceMode())
 					{
 					case FbxGeometryElement::eDirect:
@@ -146,7 +115,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 			}
 
 
-			for (l = 0; l < fbxMesh->GetElementNormalCount(); ++l)
+			for (int l = 0; l < fbxMesh->GetElementNormalCount(); ++l)
 			{
 				FbxGeometryElementNormal* leNormal = fbxMesh->GetElementNormal(l);
 
@@ -178,9 +147,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 				if (leNormal->GetMappingMode() == FbxGeometryElement::eByControlPoint)
 				{
 					if (leNormal->GetReferenceMode() == FbxGeometryElement::eDirect) 
-					{
-						//Display3DVector(header, leNormal->GetDirectArray().GetAt(lControlPointIndex));
-		
+					{		
 						vertices[vertexId].normal[0] = (float)leNormal->GetDirectArray().GetAt(lControlPointIndex)[0];
 						vertices[vertexId].normal[1] = (float)leNormal->GetDirectArray().GetAt(lControlPointIndex)[1];
 						vertices[vertexId].normal[2] = (float)leNormal->GetDirectArray().GetAt(lControlPointIndex)[2];
@@ -188,7 +155,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 				}
 
 			}
-			for (l = 0; l < fbxMesh->GetElementTangentCount(); ++l)
+			for (int l = 0; l < fbxMesh->GetElementTangentCount(); ++l)
 			{
 				FbxGeometryElementTangent* leTangent = fbxMesh->GetElementTangent(l);
 				FBXSDK_sprintf(header, 100, "vtan ");
@@ -216,7 +183,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 				}
 
 			}
-			for (l = 0; l < fbxMesh->GetElementBinormalCount(); ++l)
+			for (int l = 0; l < fbxMesh->GetElementBinormalCount(); ++l)
 			{
 
 				FbxGeometryElementBinormal* leBinormal = fbxMesh->GetElementBinormal(l);
@@ -260,6 +227,193 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 	if (vertices)
 		delete[] vertices;
 }
+
+void GetSkin(FbxMesh* fbxMesh, FbxGeometry* fbxGeo, MeshHolder* mesh)
+{
+	// Temporary skin data
+	typedef struct SkinData
+	{
+		float	boneIndex[4] { 0.0f };
+		float	boneWeight[4] { 0.0f };
+		int		minWeightIndex = 0;
+		float	minWeight = 0.0f;
+	} SkinData;
+
+	FbxVector4* controlPoints = fbxMesh->GetControlPoints();
+	// temporary vector for weights and indices, of the exact size;
+	vector<SkinData> controlPointSkinData(fbxMesh->GetControlPointsCount());
+	FbxSkin* skin = (FbxSkin*)fbxGeo->GetDeformer(0, FbxDeformer::eSkin);
+
+	// Collects vertex weights
+	for (int boneIndex = 0; boneIndex < skin->GetClusterCount(); boneIndex++)
+	{
+		FbxCluster* cluster = skin->GetCluster(boneIndex);					// One cluster is a collection of weights for a bone
+		int* indices = cluster->GetControlPointIndices();					// Control point indices for bone at boneIndex
+		double* weights = cluster->GetControlPointWeights();				// matching weights for each vertex
+		for (int x = 0; x < cluster->GetControlPointIndicesCount(); x++)
+		{
+			// Weights for one control point (vertex)
+			SkinData& ctrlPoint = controlPointSkinData[indices[x]];
+			// this block of code checks if the new weight is higher than the smallest existing weight
+			// If it is, it means we have to drop/replace and find the new minimum for the next control point.
+			if (weights[x] > ctrlPoint.minWeight)
+			{
+				ctrlPoint.boneWeight[ctrlPoint.minWeightIndex] = (float)weights[x];
+				ctrlPoint.boneIndex[ctrlPoint.minWeightIndex] = (float)boneIndex;
+
+				// Find new minimum
+				int minIndex = 0;
+				float minWeight = ctrlPoint.boneWeight[minIndex];
+				for (int j = 1; j < 4; j++)
+				{
+					if (ctrlPoint.boneWeight[j] < minWeight)
+					{
+						minIndex = j;
+						minWeight = ctrlPoint.boneWeight[j];
+
+					}
+				}
+				ctrlPoint.minWeightIndex = minIndex;
+				ctrlPoint.minWeight = minWeight;
+			}
+		}
+	}
+
+	int vertexId = 0;
+	for (int p = 0; p < fbxMesh->GetPolygonCount(); p++)
+	{
+		for (int v = 0; v < 3; v++)
+		{
+			int ctrlPointIndex = fbxMesh->GetPolygonVertex(p, v);
+			SkinData& skinData = controlPointSkinData[ctrlPointIndex];
+			float* bones = skinData.boneIndex;
+			float* weights = skinData.boneWeight;
+			Vertex& vertexRef = mesh->vertices[vertexId];
+			float sumWeights = weights[0] + weights[1] + weights[2] + weights[3];
+			vertexRef.bone[0] = bones[0];
+			vertexRef.bone[1] = bones[1];
+			vertexRef.bone[2] = bones[2];
+			vertexRef.bone[3] = bones[3];
+
+			vertexRef.weight[0] = weights[0] / sumWeights;
+			vertexRef.weight[1] = weights[1] / sumWeights;
+			vertexRef.weight[2] = weights[2] / sumWeights;
+			vertexRef.weight[3] = weights[3] / sumWeights;
+			vertexId++;
+		}
+	}
+
+	// Initialize for animation data
+	// Might brake if no animation but has a skeleton, need to test
+	FbxAnimStack* currStack = fbxMesh->GetScene()->GetSrcObject<FbxAnimStack>(0);
+	char animationName[NAME_SIZE];
+	for (int c = 0; c < NAME_SIZE; c++)
+		animationName[c] = currStack->GetName()[c];
+	animationName[NAME_SIZE - 1] = '\0';
+	FbxTakeInfo* takeInfo = fbxMesh->GetScene()->GetTakeInfo(animationName);	// MIGHT BRAKE NEED TEST
+	FbxTime start = takeInfo->mLocalTimeSpan.GetStart();
+	FbxTime stop = takeInfo->mLocalTimeSpan.GetStop();
+	int startFrame = (int)start.GetFrameCount(FbxTime::eFrames24);
+	int endFrame = (int)stop.GetFrameCount(FbxTime::eFrames24);
+	int keyframeCount = endFrame - startFrame + 1;
+
+	// References to the in-mesh for more readable code
+	SkeletonHolder& skeleton = mesh->skeleton;
+	skeleton.name[0] = '\0';
+	skeleton.animations.push_back(AnimationHolder{});
+	AnimationHolder& animation = skeleton.animations[0];
+
+	for (int c = 0; c < NAME_SIZE; c++)
+		animation.name[c] = animationName[c];
+	animation.name[NAME_SIZE - 1] = '\0';
+	animation.keyframeFirst = startFrame;
+	animation.keyframeLast = endFrame;
+	animation.duration = (float)takeInfo->mLocalTimeSpan.GetDuration().GetSecondDouble();
+	animation.rate = (float)takeInfo->mLocalTimeSpan.GetDuration().GetFrameRate(FbxTime::EMode::eFrames24);
+
+	// Allocate memory
+	animation.keyframes.resize(keyframeCount);
+
+	for (int boneIndex = 0; boneIndex < skin->GetClusterCount(); boneIndex++)
+	{
+		FbxCluster* cluster = skin->GetCluster(boneIndex);
+		char linkName[256];
+		for (int c = 0; c < NAME_SIZE; c++)
+			linkName[c] = cluster->GetLink()->GetName()[c];
+		linkName[NAME_SIZE - 1] = '\0';
+
+		int jointIndex = 0;
+		for (jointIndex; jointIndex < skeleton.joints.size(); jointIndex++)
+			if ((string)linkName == (string)skeleton.joints[jointIndex].name)
+				break;
+		if (jointIndex == skeleton.joints.size())
+			cout << "ERROR!, Cluster Link " << linkName << " not found in Skeleton" << endl;
+
+		// Geometry Transform
+		// this could account for an offset of the geometry from the bone?, usually identity.
+		FbxNode* fbxNode = fbxMesh->GetNode();
+
+		FbxAMatrix geometryTransform(
+			fbxNode->GetGeometricTranslation(FbxNode::eSourcePivot),
+			fbxNode->GetGeometricRotation(FbxNode::eSourcePivot),
+			fbxNode->GetGeometricScaling(FbxNode::eSourcePivot));
+
+		FbxAMatrix meshGlobalTransform;
+		cluster->GetTransformMatrix(meshGlobalTransform);
+		if (meshGlobalTransform.IsIdentity())
+			cout << "meshGlobalTransform is identity" << endl;
+
+		FbxAMatrix globalBindPoseTransform;
+		cluster->GetTransformLinkMatrix(globalBindPoseTransform);
+		if (globalBindPoseTransform.IsIdentity())
+			cout << "globalBindPoseTransform is identity" << endl;
+
+		FbxAMatrix associateModelTransform;
+		cluster->GetTransformAssociateModelMatrix(associateModelTransform);
+		if (associateModelTransform.IsIdentity())
+			cout << "associateModelTransform is identity" << endl;
+
+		FbxAMatrix invGlobalBindPose = globalBindPoseTransform.Inverse() * meshGlobalTransform * geometryTransform;
+		skeleton.joints[jointIndex].invBindPose = invGlobalBindPose;
+
+		//animation.keyframes.reserve(300);
+		for (int t = startFrame - 1; t <= (int)endFrame - 1; t++)
+		{
+			AnimationHolder::KeyFrameHolder& keyframe = animation.keyframes[t];
+
+			FbxTime curr;
+			curr.SetFrame(t, FbxTime::eFrames24);
+
+			FbxAMatrix currentTransformOffset = fbxNode->EvaluateGlobalTransform(curr) * geometryTransform;
+
+			FbxAMatrix localJoint = cluster->GetLink()->EvaluateLocalTransform(curr);
+			keyframe.localJointsR.push_back(localJoint.GetQ());
+			keyframe.localJointsT.push_back(localJoint.GetT());
+			keyframe.localJointsS.push_back(localJoint.GetS());
+		}
+	}
+}
+
+// Recursive function going through all the children
+void GetSkeleton(FbxNode* fbxNode, int nodeIndex, int parent, MeshHolder* meshToPopulate)
+{
+	FbxNodeAttribute* skeleton = fbxNode->GetNodeAttributeByIndex(0);
+	if (skeleton->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+	{
+		SkeletonHolder::JointHolder newJoint;
+		for (int c = 0; c < NAME_SIZE; c++)
+			newJoint.name[c] = fbxNode->GetName()[c];
+		newJoint.name[NAME_SIZE - 1] = '\0';
+		newJoint.parentIndex = parent;
+		newJoint.invBindPose;											// Only here for code readability, FbxAMatrix is default identity
+		meshToPopulate->skeleton.joints.push_back(newJoint);
+	}
+	for (int index = 0; index < fbxNode->GetChildCount(); index++)
+		GetSkeleton(fbxNode->GetChild(index), (int)meshToPopulate->skeleton.joints.size(), nodeIndex, meshToPopulate);
+}
+
+
+
 
 /*
 ========================================================================================================================

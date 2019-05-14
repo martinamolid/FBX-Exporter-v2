@@ -2,18 +2,9 @@
 
 /*
 ========================================================================================================================
-
 	PrintMaterial prints out the material information per mesh. 
 	For each material connected to the mesh, the function prints material index, material name and the Phong attributes, nr of textures for the material.
-
-	At the end of the loop, calls PrintTexture to print all the textures related to this material.
-	
 	Currently only supports Phong materials, but code for Lambert is left in case it would be desired.
-	
-	Material count is printed in PrintMesh->PrintPolygons instead of here in order to print at the top of the mesh.
-
-	// Martina Molid
-
 ========================================================================================================================
 */
 
@@ -169,7 +160,7 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 
 			}
 			else
-				cout << PrintString("Unknown type of Material") << endl;
+				cout << "Unknown type of Material" << endl;
 
 		}
 	}
@@ -191,7 +182,7 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 		if (!nameExists)
 		{
 			mats.push_back(materials[i]);
-			mesh->materialID = mats.size() - 1;
+			mesh->materialID = (int)mats.size() - 1;
 
 			for (int j = 0; j < strlen(materials[i].name); j++)
 			{
@@ -232,3 +223,4 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 		delete[] materials;
 	}
 }
+

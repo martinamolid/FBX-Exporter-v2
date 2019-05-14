@@ -24,19 +24,22 @@
 =================================================================================*/
 
 
+#include "DisplayCommon.h"
+
+#include <fbxsdk.h>
 #include <vector>
 #include <string>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+
 
 using namespace std;
-
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/BedRoomTest.fbx";
-const std::string ASCII_FILE = "Exported_Files/BedRoomTestAscii.txt";
-const std::string BINARY_FILE = "Exported_Files/BedRoomTest.meh";
-//const std::string IN_FBX_FILEPATH = "FBX_Files/BedRoomTest.fbx";
-//const std::string ASCII_FILE = "Exported_Files/TestAscii.txt";
-//const std::string BINARY_FILE = "Exported_Files/TestFile.meh";
+const std::string IN_FBX_FILEPATH = "FBX_Files/animmat.fbx";
+const std::string ASCII_FILE = "Exported_Files/AnimationTestASCII.txt";
+const std::string BINARY_FILE = "Exported_Files/AnimationTestBINARY.meh";
 
 // File header
 struct MehHeader
@@ -51,40 +54,49 @@ struct MehHeader
 // Grouping
 struct Group	// Type 0;
 {
-	char name[256];
+	char	name[NAME_SIZE];
+		
+	float	translation[3];
+	float	rotation[3];
+	float	scale[3];
 
-	float translation[3];
-	float rotation[3];
-	float scale[3];
+	bool	isChild;
+	char	parentName[256];
+	int		parentType;
+};
 
-	bool isChild;
-	char parentName[256];
-	int parentType;
+
+// Skeleton data (inside mesh)
+struct Skeleton
+{
+	char	name[NAME_SIZE];
+	int		jointCount;
+	int		aniCount;
 };
 
 // Mesh data
 struct Mesh		// Type 1;
 {
-	char name[256];
-	unsigned int materialID;
+	char	name[NAME_SIZE];
+	int		materialID;
 
-	float translation[3];
-	float rotation[3];
-	float scale[3];
+	float	translation[3];
+	float	rotation[3];
+	float	scale[3];
 
-	bool isChild;
-	char parentName[256];
-	int parentType;
+	bool	isChild;
+	char	parentName[NAME_SIZE];
+	int		parentType;
+
+	int		type;
+	int		link;
+
+	int vertexCount;
 
 	Skeleton skeleton;
-
-	int type;
-	int link;
-
-	unsigned int vertexCount;
 };
 
-// Vertex data
+// Vertex data (parsed)
 struct Vertex
 {
 	float position[3];
@@ -99,54 +111,52 @@ struct Vertex
 
 struct PhongMaterial
 {
-	char name[256];
-	float ambient[3];
-	float diffuse[3];
-	float specular[3];
-	float emissive[3];
-	float opacity;
+	char	name[NAME_SIZE];
+	float	ambient[3];
+	float	diffuse[3];
+	float	specular[3];
+	float	emissive[3];
+	float	opacity;
 
-	char albedo[256];
-	char normal[256];
+	char	albedo[256];
+	char	normal[256];
 };
 
-// Skeleton data
-struct Skeleton
-{
-	char name[256];
-	int jointCount;
-	int aniCount;
-};
 
-// Joint data
+// Joint data (parsed)
 struct Joint
 {
-	char name[256];
-	int parentIndex;
-	float invBindPose[16];
+	char	name[NAME_SIZE];
+	int		parentIndex;
+	float	invBindPose[16];
 };
 
-// Animation data
+// Animation data (parsed)
 struct Animation
 {
-	char name[256];
-	int keyframeFirst;
-	int keyframeLast;
-	float duration;
-	float rate;
-	int keyframeCount;
+	char	name[NAME_SIZE];
+	int		keyframeFirst;
+	int		keyframeLast;
+	float	duration;
+	float	rate;
+	int		keyframeCount;
 };
 
-// Keyframe data
+// Keyframe data (parsed)
 struct KeyFrame
 {
-	int id = 0;
-
+	int		id = 0;
+	int		Transforms;
 	// local transform per joint
-	float transform[16];
-	float rotate[16];
-	float scale[16];
 };
+
+struct Transform
+{
+	float	transform[3];
+	float	rotate[4];
+	float	scale[3];
+};
+
 
 // Light data (directional)
 struct DirLight 
@@ -168,9 +178,42 @@ struct PointLight
 //
 //
 // =============== Temporary fbx data ===============
+struct AnimationHolder
+{
+	struct KeyFrameHolder
+	{
+		int id = 0;
+		// local transform, good for interpolation and then making a final global.
+		vector<FbxVector4>		localJointsT;
+		vector<FbxQuaternion>	localJointsR;
+		vector<FbxVector4>		localJointsS;
+	};
+
+	char name[NAME_SIZE];
+	int keyframeFirst;
+	int keyframeLast;
+	float duration;
+	float rate;
+	vector<KeyFrameHolder> keyframes;
+};
+
+struct SkeletonHolder
+{
+	struct JointHolder
+	{
+		char name[NAME_SIZE];
+		int parentIndex = -1;
+		FbxAMatrix invBindPose;
+	};
+
+	char name[NAME_SIZE];
+	vector<JointHolder> joints;
+	vector<AnimationHolder> animations;
+};
+
 struct MeshHolder
 {
-	char name[256];
+	char name[NAME_SIZE];
 	char materialName[256];
 	float translation[3];
 	float rotation[3];
@@ -184,6 +227,7 @@ struct MeshHolder
 	//vector<Vertex> vertices;
 	int vertexCount;
 	Vertex* vertices;
+	SkeletonHolder skeleton;
 
 	int type;
 	int link;
@@ -194,44 +238,6 @@ struct MeshHolder
 		vertices = nullptr;
 	}
 
-	unsigned int materialID;
-};
-
-struct Skeleton
-{
-	struct Joint
-	{
-		string name;
-		int parentIndex = -1;
-		FbxAMatrix invBindPose;
-	};
-
-	struct Animation
-	{
-		struct KeyFrame
-		{
-			int id = 0;
-			// global transform per joint (could be used if no interpolation is needed!
-			vector<FbxVector4>		global_joints_T;
-			vector<FbxQuaternion>	global_joints_R;
-			vector<FbxVector4>		global_joints_S;
-
-			// local transform, good for interpolation and then making a final global.
-			vector<FbxVector4>		local_joints_T;
-			vector<FbxQuaternion>	local_joints_R;
-			vector<FbxVector4>		local_joints_S;
-		};
-
-		string name;
-		int first_kf;
-		int last_kf;
-		float duration;
-		float rate;
-		vector<KeyFrame> keyframes;
-	};
-
-	string name;
-	vector<Joint> joints;
-	vector<Animation> animations;
+	int materialID;
 };
 // =============== Temporary fbx data ===============
