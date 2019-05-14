@@ -144,6 +144,9 @@ int main(int argc, char** argv)
 		// Custom attribute
 		fillMesh.type = meshData[i].type;
 		fillMesh.link = meshData[i].link;
+		fillMesh.dir = meshData[i].dir;
+		fillMesh.dist = meshData[i].dist;
+		fillMesh.collect = meshData[i].collect;
 		// Vertex count
 		fillMesh.vertexCount = meshData[i].vertexCount;
 		meshes.push_back(fillMesh);
@@ -238,7 +241,13 @@ int main(int argc, char** argv)
 		asciiFile2 << meshes[i].type << endl;					//* Binary data
 		asciiFile2 << "  # Attribute link: " << endl;
 		asciiFile2 << meshes[i].link << endl;					//* Binary data
-		// 3.6 Vertex count
+		asciiFile2 << "  # Attribute dir: " << endl;
+		asciiFile2 << meshes[i].dir << endl;					//* Binary data
+		asciiFile2 << "  # Attribute dist: " << endl;
+		asciiFile2 << meshes[i].dist << endl;					//* Binary data
+		asciiFile2 << "  # Attribute collect: " << endl;
+		asciiFile2 << meshes[i].collect << endl;
+																// 3.6 Vertex count
 		asciiFile2 << "  # Vertex count: " << endl;
 		asciiFile2 << meshes[i].vertexCount << endl;			//* Binary data
 

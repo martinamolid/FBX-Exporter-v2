@@ -31,9 +31,9 @@ using namespace std;
 
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/Level1v4.fbx";
-const std::string ASCII_FILE = "Exported_Files/Level1v4ASCII.txt";
-const std::string BINARY_FILE = "Exported_Files/Level1v4.meh";
+const std::string IN_FBX_FILEPATH = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/WIP/FBX/Level[One].fbx";
+const std::string ASCII_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/ASCII/Level[One]ASCII.txt";
+const std::string BINARY_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/Level[One].meh";
 //const std::string IN_FBX_FILEPATH = "FBX_Files/BedRoomTest.fbx";
 //const std::string ASCII_FILE = "Exported_Files/TestAscii.txt";
 //const std::string BINARY_FILE = "Exported_Files/TestFile.meh";
@@ -75,6 +75,9 @@ struct Mesh		// Type 1;
 
 	int type;
 	int link;
+	int dir;
+	float dist;
+	int collect;
 
 	unsigned int vertexCount;
 };
@@ -125,6 +128,9 @@ struct MeshHolder
 
 	int type;
 	int link;
+	int dir;
+	float dist;
+	int collect;
 
 	// Constructor that may not be needed
 	MeshHolder()
