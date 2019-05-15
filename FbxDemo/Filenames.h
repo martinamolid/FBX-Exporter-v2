@@ -37,9 +37,9 @@
 using namespace std;
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/animmat.fbx";
-const std::string ASCII_FILE = "Exported_Files/AnimationTestASCII.txt";
-const std::string BINARY_FILE = "Exported_Files/AnimationTestBINARY.meh";
+const std::string IN_FBX_FILEPATH = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/WIP/FBX/Animtest.fbx";
+const std::string ASCII_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/ASCII/AnimtestASCII.txt";
+const std::string BINARY_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/Animtest.meh";
 
 // File header
 struct MehHeader
@@ -84,6 +84,10 @@ struct Mesh		// Type 1;
 	float	rotation[3];
 	float	scale[3];
 
+	bool isChild;
+	char parentName[NAME_SIZE];
+	int parentType;
+
 	int type;
 	int link;
 	int dir;
@@ -91,11 +95,9 @@ struct Mesh		// Type 1;
 	int collect;
 
 	unsigned int vertexCount;
-};
-
-	int vertexCount;
 
 	Skeleton skeleton;
+
 };
 
 // Vertex data (parsed)

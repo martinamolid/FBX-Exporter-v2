@@ -506,7 +506,7 @@ int main(int argc, char** argv)
 		{
 			// 3.4.1 Animations
 			std::cout << "Writing animation " << a << "..." << std::endl;
-			binaryFile.write((char*)&animations[a], sizeof(Joint));
+			binaryFile.write((char*)&animations[a], sizeof(Animation));
 			for (int k = 0; k < animations[a].keyframeCount; k++)
 			{
 				// 3.4.2 Keyframes
