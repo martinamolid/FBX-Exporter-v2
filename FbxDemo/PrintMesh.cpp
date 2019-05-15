@@ -17,19 +17,19 @@ void GetMesh(FbxNode* fbxNode, MeshHolder* mesh, vector<PhongMaterial>& material
 	GetPolygons(fbxMesh, mesh);
 	PrintMaterial(fbxMesh, materials, mesh);	// MM: Textures are called to be printed from PrintMaterial
 	DisplayUserProperties(fbxNode, mesh);
-	/*if (fbxGeo->GetDeformerCount(FbxDeformer::eSkin) > 0)
+	if (fbxGeo->GetDeformerCount(FbxDeformer::eSkin) > 0)
 	{
 		FbxNode* rootNode = fbxNode->GetScene()->GetRootNode();
 		for (int index = 0; index < rootNode->GetChildCount(); index++)
 			GetSkeleton(rootNode->GetChild(index), 0, -1, mesh);
 		GetSkin(fbxMesh, fbxGeo, mesh);
-	}*/
+	}
 
 }
 
 void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 {
-	int i, j, lPolygonCount = fbxMesh->GetPolygonCount();
+	int lPolygonCount = fbxMesh->GetPolygonCount();
 	FbxVector4* lControlPoints = fbxMesh->GetControlPoints();
 	char header[100];
 
@@ -38,41 +38,16 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 	Vertex *vertices = new Vertex[vtxCount];
 	mesh->vertices = new Vertex[vtxCount];
 
-	{
-		int i, lControlPointsCount = fbxMesh->GetControlPointsCount();
-		FbxVector4* lControlPoints = fbxMesh->GetControlPoints();
-
-		DisplayString("    Control Points");
-
-		for (i = 0; i < lControlPointsCount; i++)
-		{
-			DisplayInt("        Control Point ", i);
-			Display3DVector("            Coordinates: ", lControlPoints[i]);
-
-			for (int j = 0; j < fbxMesh->GetElementNormalCount(); j++)
-			{
-				FbxGeometryElementNormal* leNormals = fbxMesh->GetElementNormal(j);
-				if (leNormals->GetMappingMode() == FbxGeometryElement::eByControlPoint)
-				{
-					char header[100];
-					FBXSDK_sprintf(header, 100, "            Normal Vector: ");
-					if (leNormals->GetReferenceMode() == FbxGeometryElement::eDirect)
-						Display3DVector(header, leNormals->GetDirectArray().GetAt(i));
-				}
-			}
-		}
-	}
 
 	// MM: Builds vertices for each polygon, and adds to the vertices array we allocated memory for
 	int vertexId = 0;
-	for (i = 0; i < lPolygonCount; i++)
+	for (int p = 0; p < lPolygonCount; p++)
 	{
-		int l;
-		int lPolygonSize = fbxMesh->GetPolygonSize(i);
+		int lPolygonSize = fbxMesh->GetPolygonSize(p);
 
-		for (j = 0; j < lPolygonSize; j++)
+		for (int v = 0; v < lPolygonSize; v++)
 		{
-			int lControlPointIndex = fbxMesh->GetPolygonVertex(i, j);
+			int lControlPointIndex = fbxMesh->GetPolygonVertex(p, v);
 			if (lControlPointIndex < 0)
 			{
 				//DisplayString("            Coordinates: Invalid index found!");
@@ -84,10 +59,9 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 				vertices[vertexId].position[0] = (float)lControlPoints[lControlPointIndex][0];
 				vertices[vertexId].position[1] = (float)lControlPoints[lControlPointIndex][1];
 				vertices[vertexId].position[2] = (float)lControlPoints[lControlPointIndex][2];
-
 			}
 
-			for (l = 0; l < fbxMesh->GetElementUVCount(); ++l)
+			for (int l = 0; l < fbxMesh->GetElementUVCount(); ++l)
 			{
 				FbxGeometryElementUV* leUV = fbxMesh->GetElementUV(l);
 				FBXSDK_sprintf(header, 100, "vt ");
@@ -117,7 +91,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 
 				case FbxGeometryElement::eByPolygonVertex:
 				{
-					int lTextureUVIndex = fbxMesh->GetTextureUVIndex(i, j);
+					int lTextureUVIndex = fbxMesh->GetTextureUVIndex(p, v);
 					switch (leUV->GetReferenceMode())
 					{
 					case FbxGeometryElement::eDirect:
@@ -141,7 +115,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 			}
 
 
-			for (l = 0; l < fbxMesh->GetElementNormalCount(); ++l)
+			for (int l = 0; l < fbxMesh->GetElementNormalCount(); ++l)
 			{
 				FbxGeometryElementNormal* leNormal = fbxMesh->GetElementNormal(l);
 
@@ -174,8 +148,6 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 				{
 					if (leNormal->GetReferenceMode() == FbxGeometryElement::eDirect)
 					{
-						//Display3DVector(header, leNormal->GetDirectArray().GetAt(lControlPointIndex));
-
 						vertices[vertexId].normal[0] = (float)leNormal->GetDirectArray().GetAt(lControlPointIndex)[0];
 						vertices[vertexId].normal[1] = (float)leNormal->GetDirectArray().GetAt(lControlPointIndex)[1];
 						vertices[vertexId].normal[2] = (float)leNormal->GetDirectArray().GetAt(lControlPointIndex)[2];
@@ -183,7 +155,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 				}
 
 			}
-			for (l = 0; l < fbxMesh->GetElementTangentCount(); ++l)
+			for (int l = 0; l < fbxMesh->GetElementTangentCount(); ++l)
 			{
 				FbxGeometryElementTangent* leTangent = fbxMesh->GetElementTangent(l);
 				FBXSDK_sprintf(header, 100, "vtan ");
@@ -211,7 +183,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 				}
 
 			}
-			for (l = 0; l < fbxMesh->GetElementBinormalCount(); ++l)
+			for (int l = 0; l < fbxMesh->GetElementBinormalCount(); ++l)
 			{
 
 				FbxGeometryElementBinormal* leBinormal = fbxMesh->GetElementBinormal(l);
@@ -248,7 +220,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 	// memcpy - the vertices struct containts 14 floats, additionally there are vtxCount amount of vertices
 	// This is the amount of memory that will be copied into the mesh pointer
 	mesh->vertexCount = vtxCount;
-	memcpy(mesh->vertices, vertices, sizeof(float) * 14 * vtxCount);
+	memcpy(mesh->vertices, vertices, sizeof(Vertex) * vtxCount);
 
 
 	// MM: Delete the allocated memory for vertices
