@@ -31,7 +31,7 @@ using namespace std;
 
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/BedRoomTest.fbx";
+const std::string IN_FBX_FILEPATH = "FBX_Files/Level[BoxConundrum].fbx";
 const std::string ASCII_FILE = "Exported_Files/BedRoomTestAscii.txt";
 const std::string BINARY_FILE = "Exported_Files/BedRoomTest.meh";
 //const std::string IN_FBX_FILEPATH = "FBX_Files/BedRoomTest.fbx";
