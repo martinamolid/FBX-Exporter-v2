@@ -161,7 +161,9 @@ int main(int argc, char** argv)
 		// Custom attribute
 		fillMesh.type = meshData[i].type;
 		fillMesh.link = meshData[i].link;
-
+		fillMesh.dir = meshData[i].dir;
+		fillMesh.dist = meshData[i].dist;
+		fillMesh.collect = meshData[i].collect;
 		// Vertex count
 		fillMesh.vertexCount = meshData[i].vertexCount;
 
@@ -293,13 +295,19 @@ int main(int argc, char** argv)
 		asciiFile2 << "    Parent type: " << endl;
 		asciiFile2 << meshes[i].parentType << endl;			
 		// 3.5 Entity attributes
-		asciiFile2 << "    Attribute type: " << endl;
-		asciiFile2 << meshes[i].type << endl;			
-		asciiFile2 << "    Attribute link: " << endl;
-		asciiFile2 << meshes[i].link << endl;			
-		// 3.6 Vertex count
-		asciiFile2 << "    Vertex count: " << endl;
-		asciiFile2 << meshes[i].vertexCount << endl;			
+		asciiFile2 << "  # Attribute type: " << endl;
+		asciiFile2 << meshes[i].type << endl;					//* Binary data
+		asciiFile2 << "  # Attribute link: " << endl;
+		asciiFile2 << meshes[i].link << endl;					//* Binary data
+		asciiFile2 << "  # Attribute dir: " << endl;
+		asciiFile2 << meshes[i].dir << endl;					//* Binary data
+		asciiFile2 << "  # Attribute dist: " << endl;
+		asciiFile2 << meshes[i].dist << endl;					//* Binary data
+		asciiFile2 << "  # Attribute collect: " << endl;
+		asciiFile2 << meshes[i].collect << endl;
+																// 3.6 Vertex count
+		asciiFile2 << "  # Vertex count: " << endl;
+		asciiFile2 << meshes[i].vertexCount << endl;			//* Binary data
 
 		// 3.7 Skeleton
 		asciiFile2 << "    Joint count: " << endl;
@@ -498,7 +506,7 @@ int main(int argc, char** argv)
 		{
 			// 3.4.1 Animations
 			std::cout << "Writing animation " << a << "..." << std::endl;
-			binaryFile.write((char*)&animations[a], sizeof(Joint));
+			binaryFile.write((char*)&animations[a], sizeof(Animation));
 			for (int k = 0; k < animations[a].keyframeCount; k++)
 			{
 				// 3.4.2 Keyframes

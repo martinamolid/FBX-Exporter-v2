@@ -28,11 +28,17 @@ pCube4
 RootNode
     Parent type: 
 -1
-    Attribute type: 
+  # Attribute type: 
 0
-    Attribute link: 
+  # Attribute link: 
 0
-    Vertex count: 
+  # Attribute dir: 
+0
+  # Attribute dist: 
+0.0000000000
+  # Attribute collect: 
+0
+  # Vertex count: 
 492
     Joint count: 
 6
