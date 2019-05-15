@@ -88,11 +88,13 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 
 				// -- GETTING THE NUMBER OF TEXTURES FOR THE MATERIAL --
 				FbxProperty lProperty;
-				FbxDataType lTexProperty;
+				//FbxDataType lTexProperty;
 				int lTextureCount = 0;
 				int nrOfTextures = 0;
 				//int run = 0;
 				int lTextureIndex = 0;
+				bool hasAlbedo = false;
+				bool hasNormal = false;
 				FBXSDK_FOR_EACH_TEXTURE(lTextureIndex)
 				{
 					lProperty = lMaterial->FindProperty(FbxLayerElement::sTextureChannelNames[lTextureIndex]);
@@ -107,6 +109,8 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 						//The following code gets the file name and edits
 						//it so that only the file name gets fetched
 						//================================================
+						hasAlbedo = true;
+
 						string fileName = lTexture->GetRelativeFileName();
 						size_t pivotPos = 0;
 						for (int index = 0; index < strlen(fileName.c_str()); index++)
@@ -126,7 +130,10 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 							materials[matIndex].albedo[strlen(finalAlbedo.c_str())] = '\0';
 						}
 						
-					}
+					} 
+					if (hasAlbedo == false)
+						materials[matIndex].albedo[0] = '\0';
+
 					//lTexture = lProperty.Get;
 					if (lTexture && lTextureIndex == 9)
 					{
@@ -134,6 +141,7 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 						//The following code gets the file name and edits
 						//it so that only the file name gets fetched
 						//================================================
+						hasNormal = true;
 						string fileName = lTexture->GetRelativeFileName();
 						size_t pivotPos = 0;
 						for (int index = 0; index < strlen(fileName.c_str()); index++)
@@ -154,6 +162,8 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 						}
 
 					}
+					if(hasNormal == false)
+						materials[matIndex].normal[0] = '\0';
 
 				}
 				//cout << "Run: " << run << endl;

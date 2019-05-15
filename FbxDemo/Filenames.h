@@ -84,12 +84,14 @@ struct Mesh		// Type 1;
 	float	rotation[3];
 	float	scale[3];
 
-	bool	isChild;
-	char	parentName[NAME_SIZE];
-	int		parentType;
+	int type;
+	int link;
+	int dir;
+	float dist;
+	int collect;
 
-	int		type;
-	int		link;
+	unsigned int vertexCount;
+};
 
 	int vertexCount;
 
@@ -231,6 +233,9 @@ struct MeshHolder
 
 	int type;
 	int link;
+	int dir;
+	float dist;
+	int collect;
 
 	// Constructor that may not be needed
 	MeshHolder()

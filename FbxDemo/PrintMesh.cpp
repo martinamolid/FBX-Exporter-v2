@@ -447,6 +447,9 @@ void DisplayUserProperties(FbxObject* pObject, MeshHolder* mesh)
 
 	mesh->type = 0;
 	mesh->link = 0;
+	mesh->dir = 0;
+	mesh->dist = 0.0f;
+	mesh->collect = 0;
 
 	lProperty = pObject->GetFirstProperty();
 	int i = 0;
@@ -481,6 +484,28 @@ void DisplayUserProperties(FbxObject* pObject, MeshHolder* mesh)
 				{
 					DisplayString("            Found: Link ");
 					mesh->link = lProperty.Get<FbxInt>();
+				}
+
+				if (lProperty.GetName() == "Dir")
+				{
+					DisplayString("            Found: Dir ");
+					mesh->dir = lProperty.Get<FbxInt>();
+				}
+
+				if (lProperty.GetName() == "Collect")
+				{
+					DisplayString("            Found: Collect ");
+					mesh->collect = lProperty.Get<FbxInt>();
+				}
+			}
+
+			if (lPropertyDataType.GetType() == eFbxDouble)
+			{
+				DisplayDouble("            Default Value: ", lProperty.Get<FbxFloat>());
+				if (lProperty.GetName() == "Dist")
+				{
+					DisplayString("            Found: Dist ");
+					mesh->dist = lProperty.Get<FbxFloat>();
 				}
 			}
 			// UNIDENTIFIED
