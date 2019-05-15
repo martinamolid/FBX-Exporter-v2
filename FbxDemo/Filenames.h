@@ -37,9 +37,9 @@
 using namespace std;
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/WIP/FBX/Animtest.fbx";
-const std::string ASCII_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/ASCII/AnimtestASCII.txt";
-const std::string BINARY_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/Animtest.meh";
+const std::string IN_FBX_FILEPATH = "FBX_Files/Level[BoxConundrum].fbx";
+const std::string ASCII_FILE = "Exported_Files/AnimtestASCII.txt";
+const std::string BINARY_FILE = "Exported_Files/Animtest.meh";
 
 // File header
 struct MehHeader
