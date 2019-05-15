@@ -38,7 +38,6 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 	Vertex *vertices = new Vertex[vtxCount];
 	mesh->vertices = new Vertex[vtxCount];
 
-
 	{
 		int i, lControlPointsCount = fbxMesh->GetControlPointsCount();
 		FbxVector4* lControlPoints = fbxMesh->GetControlPoints();
@@ -63,10 +62,6 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 			}
 		}
 	}
-
-
-
-
 
 	// MM: Builds vertices for each polygon, and adds to the vertices array we allocated memory for
 	int vertexId = 0;
