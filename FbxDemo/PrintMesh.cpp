@@ -29,7 +29,7 @@ void GetMesh(FbxNode* fbxNode, MeshHolder* mesh, vector<PhongMaterial>& material
 
 void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 {
-	int lPolygonCount = fbxMesh->GetPolygonCount();
+	int p, v, lPolygonCount = fbxMesh->GetPolygonCount();
 	FbxVector4* lControlPoints = fbxMesh->GetControlPoints();
 	char header[100];
 
@@ -41,11 +41,12 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 
 	// MM: Builds vertices for each polygon, and adds to the vertices array we allocated memory for
 	int vertexId = 0;
-	for (int p = 0; p < lPolygonCount; p++)
+	for (p = 0; p < lPolygonCount; p++)
 	{
-		int lPolygonSize = fbxMesh->GetPolygonSize(p);
+		int l;
+		int  lPolygonSize = fbxMesh->GetPolygonSize(p);
 
-		for (int v = 0; v < lPolygonSize; v++)
+		for (v = 0; v < lPolygonSize; v++)
 		{
 			int lControlPointIndex = fbxMesh->GetPolygonVertex(p, v);
 			if (lControlPointIndex < 0)
@@ -61,7 +62,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 				vertices[vertexId].position[2] = (float)lControlPoints[lControlPointIndex][2];
 			}
 
-			for (int l = 0; l < fbxMesh->GetElementUVCount(); ++l)
+			for (l = 0; l < fbxMesh->GetElementUVCount(); ++l)
 			{
 				FbxGeometryElementUV* leUV = fbxMesh->GetElementUV(l);
 				FBXSDK_sprintf(header, 100, "vt ");
@@ -115,7 +116,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 			}
 
 
-			for (int l = 0; l < fbxMesh->GetElementNormalCount(); ++l)
+			for (l = 0; l < fbxMesh->GetElementNormalCount(); ++l)
 			{
 				FbxGeometryElementNormal* leNormal = fbxMesh->GetElementNormal(l);
 
@@ -155,7 +156,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 				}
 
 			}
-			for (int l = 0; l < fbxMesh->GetElementTangentCount(); ++l)
+			for (l = 0; l < fbxMesh->GetElementTangentCount(); ++l)
 			{
 				FbxGeometryElementTangent* leTangent = fbxMesh->GetElementTangent(l);
 				FBXSDK_sprintf(header, 100, "vtan ");
@@ -183,7 +184,7 @@ void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)
 				}
 
 			}
-			for (int l = 0; l < fbxMesh->GetElementBinormalCount(); ++l)
+			for (l = 0; l < fbxMesh->GetElementBinormalCount(); ++l)
 			{
 
 				FbxGeometryElementBinormal* leBinormal = fbxMesh->GetElementBinormal(l);
