@@ -24,7 +24,6 @@ void GetMesh(FbxNode* fbxNode, MeshHolder* mesh, vector<PhongMaterial>& material
 			GetSkeleton(rootNode->GetChild(index), 0, -1, mesh);
 		GetSkin(fbxMesh, fbxGeo, mesh);
 	}
-
 }
 
 void GetPolygons(FbxMesh* fbxMesh, MeshHolder* mesh)

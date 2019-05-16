@@ -149,7 +149,7 @@ struct Animation
 // Keyframe data (parsed)
 struct KeyFrame
 {
-	int		id = 0;
+	int		id;
 	int		Transforms;
 	// local transform per joint
 };
@@ -186,7 +186,7 @@ struct AnimationHolder
 {
 	struct KeyFrameHolder
 	{
-		int id = 0;
+		int id;
 		// local transform, good for interpolation and then making a final global.
 		vector<FbxVector4>		localJointsT;
 		vector<FbxQuaternion>	localJointsR;
@@ -206,7 +206,7 @@ struct SkeletonHolder
 	struct JointHolder
 	{
 		char name[NAME_SIZE];
-		int parentIndex = -1;
+		int parentIndex;
 		FbxAMatrix invBindPose;
 	};
 
