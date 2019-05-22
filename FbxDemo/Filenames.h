@@ -37,9 +37,9 @@
 using namespace std;
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/WIP/FBX/Level[BoxConundrum].fbx";
-const std::string ASCII_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/ASCII/Level[BoxConundrum]ASCII.txt";
-const std::string BINARY_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/Level[BoxConundrum].meh";
+const std::string IN_FBX_FILEPATH = "FBX_Files/animmat.fbx";
+const std::string ASCII_FILE = "Exported_Files/AniTest.txt";
+const std::string BINARY_FILE = "Exported_Files/AniTest.meh";
 
 // File header
 struct MehHeader
@@ -97,7 +97,6 @@ struct Mesh		// Type 1;
 	unsigned int vertexCount;
 
 	Skeleton skeleton;
-
 };
 
 // Vertex data (parsed)
@@ -122,8 +121,8 @@ struct PhongMaterial
 	float	emissive[3];
 	float	opacity;
 
-	char	albedo[256];
-	char	normal[256];
+	char	albedo[NAME_SIZE];
+	char	normal[NAME_SIZE];
 };
 
 
@@ -150,8 +149,7 @@ struct Animation
 struct KeyFrame
 {
 	int		id;
-	int		Transforms;
-	// local transform per joint
+	int		transformCount;
 };
 
 struct Transform
@@ -182,6 +180,35 @@ struct PointLight
 //
 //
 // =============== Temporary fbx data ===============
+struct MeshSkeleton
+{
+	std::vector<Joint> joint;
+};
+
+struct MeshAnis
+{
+	struct MeshAnimation
+	{
+		struct KeyFrameL
+		{
+			struct TransformL
+			{
+				Transform t;
+			};
+
+			KeyFrame key;
+			std::vector<TransformL> transforms;
+		};
+
+		Animation ani;
+		std::vector<KeyFrameL> keyFrames;
+	};
+
+	std::vector<MeshAnimation> animations;
+};
+
+
+
 struct AnimationHolder
 {
 	struct KeyFrameHolder

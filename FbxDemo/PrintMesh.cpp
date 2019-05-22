@@ -4,7 +4,7 @@
 void GetMesh(FbxNode* fbxNode, MeshHolder* mesh, vector<PhongMaterial>& materials)
 {
 	FbxMesh* fbxMesh = (FbxMesh*)fbxNode->GetNodeAttribute();
-	FbxGeometry* fbxGeo = (FbxGeometry*)fbxNode->GetNodeAttribute();
+	FbxGeometry* fbxGeo = (FbxGeometry*)fbxMesh;
 
 	// Applies the mesh name
 	int nameLength = (int)strlen(fbxNode->GetName());
@@ -383,7 +383,7 @@ void GetSkin(FbxMesh* fbxMesh, FbxGeometry* fbxGeo, MeshHolder* mesh)
 			FbxTime curr;
 			curr.SetFrame(t, FbxTime::eFrames24);
 
-			FbxAMatrix currentTransformOffset = fbxNode->EvaluateGlobalTransform(curr) * geometryTransform;
+			//FbxAMatrix currentTransformOffset = fbxNode->EvaluateGlobalTransform(curr) * geometryTransform;
 
 			FbxAMatrix localJoint = cluster->GetLink()->EvaluateLocalTransform(curr);
 			keyframe.localJointsR.push_back(localJoint.GetQ());

@@ -44,6 +44,15 @@ int main(int argc, char** argv)
     FbxScene* fileScene = NULL;
     bool lResult;
 
+	lSdkManager = FbxManager::Create();
+	FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
+	lSdkManager->SetIOSettings(ios);
+	fileScene = FbxScene::Create(lSdkManager, "My Scene");
+	FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
+
+
+
+
 	// In commandline parameters
 	vector<string> inParameters;
 	for (int i = 0; i < argc; i++)
@@ -58,7 +67,17 @@ int main(int argc, char** argv)
 	FbxString lFilePath("");
 	lFilePath = IN_FBX_FILEPATH.c_str();
 	// Load the scene.
-	lResult = LoadScene(lSdkManager, fileScene, lFilePath.Buffer());
+	//lResult = LoadScene(lSdkManager, fileScene, lFilePath.Buffer());
+	lResult = lImporter->Initialize(lFilePath, -1, lSdkManager->GetIOSettings());
+	ios->SetBoolProp(IMP_FBX_MATERIAL, true);
+	ios->SetBoolProp(IMP_FBX_TEXTURE, true);
+	ios->SetBoolProp(IMP_FBX_LINK, true);
+	ios->SetBoolProp(IMP_FBX_SHAPE, true);
+	ios->SetBoolProp(IMP_FBX_GOBO, true);
+	ios->SetBoolProp(IMP_FBX_ANIMATION, true);
+	ios->SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, true);
+	lResult = lImporter->Import(fileScene);
+
 
 
 	//	===== Data collection ==================================================
@@ -79,14 +98,12 @@ int main(int argc, char** argv)
 	MehHeader fileHeader;
 	vector<Group> groups;
 	vector<Mesh> meshes;
-	vector<Joint> joints;
 	vector<PhongMaterial> materials;
 	vector<DirLight> dirLights;
 	vector<PointLight> pointLight;
 
-	vector<Animation> animations;
-	vector<KeyFrame> keyframes;
-	vector<Transform> keyTransforms;
+	vector<MeshSkeleton> skeleD;
+	vector<MeshAnis> anisD;
 
 	// Gather the data
 	if (sceneRootNode)
@@ -96,18 +113,17 @@ int main(int argc, char** argv)
 			PrintContent(sceneRootNode->GetChild(i), groups, meshData, materials, dirLights, pointLight, false, -1);
 		}
 	}
-
 	//	===== Parse data ==================================================
 	//	This section will parse and data that isn't yet fully loaded in for 
 	//	the writing of the custom file
 	//	===================================================================
 
 	// ==== Header ====
-	fileHeader.meshCount = (int)meshData.size();
-	fileHeader.groupCount = (int)groups.size();;
-	fileHeader.materialCount = (int)materials.size();
-	fileHeader.dirLightCount = (int)dirLights.size();
-	fileHeader.pointLightCount = (int)pointLight.size();
+	fileHeader.meshCount		= (int)meshData.size();
+	fileHeader.groupCount		= (int)groups.size();;
+	fileHeader.materialCount	= (int)materials.size();
+	fileHeader.dirLightCount	= (int)dirLights.size();
+	fileHeader.pointLightCount	= (int)pointLight.size();
 
 	// ==== Meshes ====
 	for (int i = 0; i < meshData.size(); i++)
@@ -143,8 +159,10 @@ int main(int argc, char** argv)
 			fillMesh.skeleton.name[c] = meshData[i].skeleton.name[c];
 		fillMesh.skeleton.jointCount = (int)meshData[i].skeleton.joints.size();
 		fillMesh.skeleton.aniCount = (int)meshData[i].skeleton.animations.size();
+		skeleD.resize(skeleD.size() + 1);
 
 		// Joint data
+		skeleD[i].joint.resize(fillMesh.skeleton.jointCount);
 		for (int j = 0; j < fillMesh.skeleton.jointCount; j++)
 		{
 			Joint fillJoint;
@@ -155,7 +173,7 @@ int main(int argc, char** argv)
 				for (int col = 0; col < 4; col++)
 					fillJoint.invBindPose[col + row * 4] = (float)meshData[i].skeleton.joints[j].invBindPose[row][col];
 
-			joints.push_back(fillJoint);
+			skeleD[i].joint[j] = fillJoint;
 		}
 
 		// Custom attribute
@@ -168,6 +186,8 @@ int main(int argc, char** argv)
 		fillMesh.vertexCount = meshData[i].vertexCount;
 
 		// Animations
+		anisD.resize((anisD.size() + 1));
+		anisD[i].animations.resize(meshData[i].skeleton.animations.size());
 		for (int a = 0; a < meshData[i].skeleton.animations.size(); a++)
 		{
 			Animation fillAni;
@@ -178,15 +198,20 @@ int main(int argc, char** argv)
 			fillAni.duration		= meshData[i].skeleton.animations[a].duration;
 			fillAni.rate			= meshData[i].skeleton.animations[a].rate;
 			fillAni.keyframeCount	= (int)meshData[i].skeleton.animations[a].keyframes.size();
-			animations.push_back(fillAni);
+			anisD[i].animations[a].ani = fillAni;
 
 			// Keyframes
-			for (int k = 0; k < animations[a].keyframeCount; k++)
+			anisD[i].animations[a].keyFrames.resize(fillAni.keyframeCount);
+			for (int k = 0; k < fillAni.keyframeCount; k++)
 			{
 				KeyFrame fillKey;
 				// This expects all the transforms to be filled equally (no transform is an identity matrix
-				fillKey.Transforms = (int)meshData[i].skeleton.animations[a].keyframes[k].localJointsR.size();
-				for (int t = 0; t < fillKey.Transforms; t++)
+				fillKey.transformCount = (int)meshData[i].skeleton.animations[a].keyframes[k].localJointsR.size();
+				anisD[i].animations[a].keyFrames[k].key = fillKey;
+
+				// Transforms
+				anisD[i].animations[a].keyFrames[k].transforms.resize(fillKey.transformCount);
+				for (int t = 0; t < fillKey.transformCount; t++)
 				{
 					Transform fillTr;
 					for (int v = 0; v < 3; v++)
@@ -195,10 +220,10 @@ int main(int argc, char** argv)
 						fillTr.rotate[v] = (float)meshData[i].skeleton.animations[a].keyframes[k].localJointsR[t][v];
 					for (int v = 0; v < 3; v++)
 						fillTr.scale[v] = (float)meshData[i].skeleton.animations[a].keyframes[k].localJointsS[t][v];
-					keyTransforms.push_back(fillTr);
+
+					anisD[i].animations[a].keyFrames[k].transforms[t].t = fillTr;
 				}
 
-				keyframes.push_back(fillKey);
 			}
 		}
 
@@ -330,25 +355,27 @@ int main(int argc, char** argv)
 			asciiFile2 << meshData[i].vertices[j].normal[0]		<< ", "	<< meshData[i].vertices[j].normal[1]	<< ", "	<< meshData[i].vertices[j].normal[2] << endl;
 			asciiFile2 << meshData[i].vertices[j].tangent[0]	<< ", "	<< meshData[i].vertices[j].tangent[1]	<< ", "	<< meshData[i].vertices[j].tangent[2] << endl;
 			asciiFile2 << meshData[i].vertices[j].bitangent[0] << ", " << meshData[i].vertices[j].bitangent[1] << ", " << meshData[i].vertices[j].bitangent[2] << endl;
+			asciiFile2 << meshData[i].vertices[j].weight[0] << ", " << meshData[i].vertices[j].weight[1] << ", " << meshData[i].vertices[j].weight[2] << ", " << meshData[i].vertices[j].weight[3] << endl;
+			asciiFile2 << meshData[i].vertices[j].bone[0] << ", " << meshData[i].vertices[j].bone[1] << ", " << meshData[i].vertices[j].bone[2] << ", " << meshData[i].vertices[j].bone[3] << endl;
 			//^ Binary data
 		}
 		asciiFile2 << "    //^ Mesh " << i << " Vertices " << " --------------------" << endl << endl;
 		// ======================== ~
 
-
 		// ========================================================= Joints		
+		MeshSkeleton& sk = skeleD[i];
 		asciiFile2 << "    //v Mesh " << i << " Joints " << " --------------------" << endl;
 		for (int j = 0; j < meshes[i].skeleton.jointCount; j++)
 		{
 			asciiFile2 << "    ~ " << j << " Joint name: " << endl;
-			asciiFile2 << joints[j].name << endl;			
+			asciiFile2 << sk.joint[j].name << endl;
 			asciiFile2 << "index: " << endl;
-			asciiFile2 << joints[j].parentIndex << endl;
+			asciiFile2 << sk.joint[j].parentIndex << endl;
 			asciiFile2 << "Bind pose: " << endl;
 			for (int q = 0; q < 4; q++)
 			{
 				for (int u = 0; u < 4; u++)
-					asciiFile2 << joints[j].invBindPose[u + q * 4] << " ";
+					asciiFile2 << sk.joint[j].invBindPose[u + q * 4] << " ";
 				asciiFile2 << endl;
 			}
 			asciiFile2 << endl;
@@ -361,41 +388,48 @@ int main(int argc, char** argv)
 		asciiFile2 << "    //v Mesh " << i << " Animations " << " --------------------" << endl;
 		for (int a = 0; a < meshes[i].skeleton.aniCount; a++)
 		{
+			// Gets a reference to this meshes animation at slot a
+			Animation& animRef = anisD[i].animations[a].ani;
+
 			asciiFile2 << "    ~ " << a << " Animation" << endl;
 			asciiFile2 << "    Animation name: " << endl;
-			asciiFile2 << animations[a].name			<< endl;
+			asciiFile2 << animRef.name	<< endl;
 			asciiFile2 << "    First keyframe: " << endl;
-			asciiFile2 << animations[a].keyframeFirst	<< endl;
+			asciiFile2 << animRef.keyframeFirst	<< endl;
 			asciiFile2 << "    Last keyframe: " << endl;
-			asciiFile2 << animations[a].keyframeLast	<< endl;
+			asciiFile2 << animRef.keyframeLast	<< endl;
 			asciiFile2 << "    Duration: " << endl;
-			asciiFile2 << animations[a].duration		<< endl;
+			asciiFile2 << animRef.duration		<< endl;
 			asciiFile2 << "    Rate: " << endl;
-			asciiFile2 << animations[a].rate			<< endl;
+			asciiFile2 << animRef.rate			<< endl;
 			asciiFile2 << "    Keyframe count: " << endl;
-			asciiFile2 << animations[a].keyframeCount	<< endl;
+			asciiFile2 << animRef.keyframeCount	<< endl;
 			// ======================== ~
 
 			
 			// ========================================================= Keyframes
 			asciiFile2 << "    //v Animation " << a << " Keyframes " << " --------------------" << endl << endl;
-			for (int k = 0; k < animations[a].keyframeCount; k++)
+			for (int k = 0; k < animRef.keyframeCount; k++)
 			{
+				// Gets a reference to this meshes keyframe at slot k in animation a of this mesh
+				KeyFrame& keyRef = anisD[i].animations[a].keyFrames[k].key;
+
 				asciiFile2 << "    ~ " << k << " Keyframe" << endl;
 				asciiFile2 << "transforms: " << endl;
-				asciiFile2 << keyframes[k].Transforms << endl;
+				asciiFile2 << keyRef.transformCount << endl;
 				// ========================================================= Transforms
-				for (int t = 0; t < keyframes[k].Transforms; t++)
+				for (int t = 0; t < keyRef.transformCount; t++)
 				{
+					Transform& traRef = anisD[i].animations[a].keyFrames[k].transforms[t].t;
 					asciiFile2 << "        * " << t << " transform / rotate / scale: " << endl;
 					for (int v = 0; v < 3; v++)
-						asciiFile2 << keyTransforms[t].transform[v] << " ";
+						asciiFile2 << traRef.transform[v] << " ";
 					asciiFile2 << endl;
 					for (int v = 0; v < 4; v++)
-						asciiFile2 << keyTransforms[t].rotate[v] << " ";
+						asciiFile2 << traRef.rotate[v] << " ";
 					asciiFile2 << endl;
 					for (int v = 0; v < 3; v++)
-						asciiFile2 << keyTransforms[t].scale[v] << " ";
+						asciiFile2 << traRef.scale[v] << " ";
 					asciiFile2 << endl;
 				}
 				// ======================== ~
@@ -498,25 +532,29 @@ int main(int argc, char** argv)
 		// 3.3 Joints
 		for (int j = 0; j < meshes[i].skeleton.jointCount; j++)
 		{
+			Joint& jointRef = skeleD[i].joint[j];
 			std::cout << "Writing joint " << j <<"..." << std::endl;
-			binaryFile.write((char*)&joints[j], sizeof(Joint) * meshes[i].skeleton.jointCount);
+			binaryFile.write((char*)&jointRef, sizeof(Joint));
 		}
 
 		for (int a = 0; a < meshes[i].skeleton.aniCount; a++)
 		{
 			// 3.4.1 Animations
+			Animation& aniRef = anisD[i].animations[a].ani;
 			std::cout << "Writing animation " << a << "..." << std::endl;
-			binaryFile.write((char*)&animations[a], sizeof(Animation));
-			for (int k = 0; k < animations[a].keyframeCount; k++)
+			binaryFile.write((char*)&aniRef, sizeof(Animation));
+			for (int k = 0; k < aniRef.keyframeCount; k++)
 			{
 				// 3.4.2 Keyframes
+				KeyFrame& keyRef = anisD[i].animations[a].keyFrames[k].key;
 				std::cout << "Writing keyframe " << k << "..." << std::endl;
-				binaryFile.write((char*)&keyframes[k], sizeof(KeyFrame));
-				for (int t = 0; t < keyframes[k].Transforms; t++)
+				binaryFile.write((char*)&keyRef, sizeof(KeyFrame));
+				for (int t = 0; t < keyRef.transformCount; t++)
 				{
 					// 3.4.3 Transforms
+					Transform& traRef = anisD[i].animations[a].keyFrames[k].transforms[t].t;
 					std::cout << "Writing keyTransform " << t << "..." << std::endl;
-					binaryFile.write((char*)&keyTransforms[t], sizeof(Transform));
+					binaryFile.write((char*)&traRef, sizeof(Transform));
 				}
 			}
 		}
