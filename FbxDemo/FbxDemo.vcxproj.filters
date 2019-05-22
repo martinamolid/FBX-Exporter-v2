@@ -18,12 +18,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="PrintInfo.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PrintMesh.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Common\AnimationUtility.h">
       <Filter>Source Files\FBX SDK Org</Filter>
     </ClInclude>
@@ -96,14 +90,20 @@
     <ClInclude Include="..\Common\GeometryUtility.h">
       <Filter>Source Files\FBX SDK Org</Filter>
     </ClInclude>
-    <ClInclude Include="PrintMaterial.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="PrintLight.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PrintInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PrintMesh.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Filenames.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PrintLight.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="PrintMaterial.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
