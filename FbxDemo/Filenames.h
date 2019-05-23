@@ -55,7 +55,7 @@ struct MehHeader
 struct Group	// Type 0;
 {
 	char	name[NAME_SIZE];
-		
+
 	float	translation[3];
 	float	rotation[3];
 	float	scale[3];
@@ -90,6 +90,9 @@ struct Mesh		// Type 1;
 
 	int type;
 	int link;
+	int dir;
+	float dist;
+	int collect;
 
 	unsigned int vertexCount;
 
@@ -158,7 +161,7 @@ struct Transform
 
 
 // Light data (directional)
-struct DirLight 
+struct DirLight
 {
 	float position[3];
 	float rotation[3];
@@ -167,7 +170,7 @@ struct DirLight
 };
 
 // Light data (point)
-struct PointLight 
+struct PointLight
 {
 	float position[3];
 	float color[3];
@@ -259,6 +262,9 @@ struct MeshHolder
 
 	int type;
 	int link;
+	int dir;
+	float dist;
+	int collect;
 
 	// Constructor that may not be needed
 	MeshHolder()
