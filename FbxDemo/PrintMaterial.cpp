@@ -122,7 +122,26 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 						string fileNameEd = fileName.substr(pivotPos+1, strlen(fileName.c_str()));
 						string finalAlbedo = "Resources/Textures/";
 						finalAlbedo += fileNameEd;
+						std::ifstream in(, ios_base::in | ios_base::binary);
+						std::ofstream out("C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Textures/testTexture.png", ios_base::out | ios_base::binary);
 
+						char buffer[4096];
+
+						if (in)
+						{
+							do	
+							{
+								in.read(&buffer[0], 4096);
+								out.write(&buffer[0], in.gcount());
+							} while (in.gcount() > 0);
+						}
+						else
+						{
+							std::cout << "Error reading and writing to file" << std::endl;
+						}
+
+						in.close();
+						out.close();
 
 						//Send string to struct
 						for (int j = 0; j < strlen(finalAlbedo.c_str()); j++)
@@ -154,7 +173,7 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 						string fileNameEd = fileName.substr(pivotPos + 1, strlen(fileName.c_str()));
 						string finalNormal = "Resources/Textures/";
 						finalNormal += fileNameEd;
-
+				
 
 						//Send string to struct
 						for (int j = 0; j < strlen(finalNormal.c_str()); j++)
