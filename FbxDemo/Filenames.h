@@ -23,7 +23,6 @@
 	Filehandling will be handled with the command prompt later
 =================================================================================*/
 
-
 #include "DisplayCommon.h"
 
 #include <fbxsdk.h>
@@ -34,13 +33,11 @@
 #include <fstream>
 #include <Windows.h>
 
-
 using namespace std;
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/WIP/FBX/TextureTest.fbx";
-const std::string ASCII_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/ASCII/TextureTestASCII.txt";
-const std::string BINARY_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/TextureTest.meh";
+const std::string IN_FBX_FILEPATH = "FBX_Files/Level[Toybox].fbx";
+const std::string OUTPUT_PATH = "Exported_Files/Level[Toybox]";
 
 // File header
 struct MehHeader
