@@ -304,12 +304,12 @@ void GetSkin(FbxMesh* fbxMesh, FbxGeometry* fbxGeo, MeshHolder* mesh)
 
 	// Initialize for animation data
 	// Might brake if no animation but has a skeleton, need to test
-	FbxAnimStack* currStack = fbxMesh->GetScene()->GetSrcObject<FbxAnimStack>(0);
+	FbxAnimStack* currStack = fbxMesh->GetScene()->GetSrcObject<FbxAnimStack>(mesh->skeleton.animations.size());
 	char animationName[NAME_SIZE];
 	for (int c = 0; c < NAME_SIZE; c++)
 		animationName[c] = currStack->GetName()[c];
 	animationName[NAME_SIZE - 1] = '\0';
-	FbxTakeInfo* takeInfo = fbxMesh->GetScene()->GetTakeInfo(animationName);	// MIGHT BRAKE NEED TEST
+	FbxTakeInfo* takeInfo = fbxMesh->GetScene()->GetTakeInfo(animationName);
 	FbxTime start = takeInfo->mLocalTimeSpan.GetStart();
 	FbxTime stop = takeInfo->mLocalTimeSpan.GetStop();
 	int startFrame = (int)start.GetFrameCount(FbxTime::eFrames24);
@@ -320,7 +320,7 @@ void GetSkin(FbxMesh* fbxMesh, FbxGeometry* fbxGeo, MeshHolder* mesh)
 	SkeletonHolder& skeleton = mesh->skeleton;
 	skeleton.name[0] = '\0';
 	skeleton.animations.push_back(AnimationHolder{});
-	AnimationHolder& animation = skeleton.animations[0];
+	AnimationHolder& animation = skeleton.animations[skeleton.animations.size() - 1];
 
 	for (int c = 0; c < NAME_SIZE; c++)
 		animation.name[c] = animationName[c];
@@ -332,7 +332,6 @@ void GetSkin(FbxMesh* fbxMesh, FbxGeometry* fbxGeo, MeshHolder* mesh)
 
 	// Allocate memory
 	animation.keyframes.resize(keyframeCount);
-
 	for (int boneIndex = 0; boneIndex < skin->GetClusterCount(); boneIndex++)
 	{
 		FbxCluster* cluster = skin->GetCluster(boneIndex);
@@ -359,23 +358,17 @@ void GetSkin(FbxMesh* fbxMesh, FbxGeometry* fbxGeo, MeshHolder* mesh)
 
 		FbxAMatrix meshGlobalTransform;
 		cluster->GetTransformMatrix(meshGlobalTransform);
-		if (meshGlobalTransform.IsIdentity())
-			cout << "meshGlobalTransform is identity" << endl;
 
 		FbxAMatrix globalBindPoseTransform;
 		cluster->GetTransformLinkMatrix(globalBindPoseTransform);
-		if (globalBindPoseTransform.IsIdentity())
-			cout << "globalBindPoseTransform is identity" << endl;
 
 		FbxAMatrix associateModelTransform;
 		cluster->GetTransformAssociateModelMatrix(associateModelTransform);
-		if (associateModelTransform.IsIdentity())
-			cout << "associateModelTransform is identity" << endl;
 
-		FbxAMatrix invGlobalBindPose = globalBindPoseTransform.Inverse() * meshGlobalTransform * geometryTransform;
+
+		FbxAMatrix invGlobalBindPose = globalBindPoseTransform.Inverse() * meshGlobalTransform * geometryTransform * associateModelTransform;
 		skeleton.joints[jointIndex].invBindPose = invGlobalBindPose;
 
-		//animation.keyframes.reserve(300);
 		for (int t = startFrame - 1; t <= (int)endFrame - 1; t++)
 		{
 			AnimationHolder::KeyFrameHolder& keyframe = animation.keyframes[t];
@@ -383,14 +376,29 @@ void GetSkin(FbxMesh* fbxMesh, FbxGeometry* fbxGeo, MeshHolder* mesh)
 			FbxTime curr;
 			curr.SetFrame(t, FbxTime::eFrames24);
 
-			//FbxAMatrix currentTransformOffset = fbxNode->EvaluateGlobalTransform(curr) * geometryTransform;
-
 			FbxAMatrix localJoint = cluster->GetLink()->EvaluateLocalTransform(curr);
 			keyframe.localJointsR.push_back(localJoint.GetQ());
 			keyframe.localJointsT.push_back(localJoint.GetT());
 			keyframe.localJointsS.push_back(localJoint.GetS());
 		}
 	}
+
+	int bonesAmnt = (int)skeleton.joints.size();
+	for (int boneIndex = skin->GetClusterCount(); boneIndex < bonesAmnt; boneIndex++)
+	{
+		for (int t = startFrame - 1; t <= (int)endFrame - 1; t++)
+		{
+			AnimationHolder::KeyFrameHolder& keyframe = animation.keyframes[t];
+
+			FbxVector4 fillv;
+			FbxQuaternion fillq;
+
+			keyframe.localJointsR.push_back(fillq);
+			keyframe.localJointsT.push_back(fillv);
+			keyframe.localJointsS.push_back(fillv);
+		}
+	}
+
 }
 
 // Recursive function going through all the children
@@ -404,7 +412,7 @@ void GetSkeleton(FbxNode* fbxNode, int nodeIndex, int parent, MeshHolder* meshTo
 			newJoint.name[c] = fbxNode->GetName()[c];
 		newJoint.name[NAME_SIZE - 1] = '\0';
 		newJoint.parentIndex = parent;
-		newJoint.invBindPose;											// Only here for code readability, FbxAMatrix is default identity
+		newJoint.invBindPose;					// Only here for code readability, FbxAMatrix is default identity
 		meshToPopulate->skeleton.joints.push_back(newJoint);
 	}
 	for (int index = 0; index < fbxNode->GetChildCount(); index++)

@@ -34,7 +34,8 @@ using namespace std;
 #pragma comment(lib,"zlib-mt.lib")
 
 // Local function prototypes.
-void PrintContent(FbxNode* pNode, vector<Group>& fillGroup, vector<MeshHolder>& mesh, vector<PhongMaterial>& mats, vector<DirLight>& dirLight, vector<PointLight>& pointLight, bool isChild, int parentType);
+void PrintContent(FbxNode* pNode, vector<Group>& fillGroup, vector<MeshHolder>& mesh, vector<PhongMaterial>& mats, vector<DirLight>& dirLight, vector<PointLight>& pointLight,
+	bool isChild, int parentType, bool wg, bool wme, bool wma, bool ws, bool wa, bool wl);
 void DisplayPivotsAndLimits(FbxNode* pNode);
 
 
@@ -50,22 +51,46 @@ int main(int argc, char** argv)
 	fileScene = FbxScene::Create(lSdkManager, "My Scene");
 	FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
 
-
-
-
-	// In commandline parameters
-	vector<string> inParameters;
-	for (int i = 0; i < argc; i++)
-	{
-		inParameters.push_back(argv[i]);
-	}
-
     // Prepare the FBX SDK.
     InitializeSdkObjects(lSdkManager, fileScene);
 
 	// This is wherethe in fbx filepath should be added comming in from the CMD
-	FbxString lFilePath("");
-	lFilePath = IN_FBX_FILEPATH.c_str();
+	FbxString lFilePath = IN_FBX_FILEPATH.c_str();
+	string outputPath = OUTPUT_PATH;
+
+
+	// In commandline parameters
+	bool writeGroups		= false;
+	bool writeMeshes		= true;
+	bool writeMaterials		= true;
+	bool writeSkeletons		= true;
+	bool writeAnimations	= true;
+	bool writeLights		= true;
+
+	vector<string> inParameters;
+	for (int i = 0; i < argc; i++)
+	{
+		inParameters.push_back(argv[i]);
+		if ((string)argv[i] == "-nogroups")
+			writeMaterials = false;
+		if ((string)argv[i] == "-nomeshes")
+			writeMeshes = false;
+		if ((string)argv[i] == "-nomaterials")
+			writeMaterials = false;
+		if ((string)argv[i] == "-noskeleton")
+			writeSkeletons = false;
+		if ((string)argv[i] == "-noanimation")
+			writeAnimations = false;
+		if ((string)argv[i] == "-nolights")
+			writeLights = false;
+
+		if ((string)argv[i] == "-i")
+			lFilePath = argv[i + 1];
+
+		if ((string)argv[i] == "-o")
+			outputPath = argv[i + 1];
+	}
+
 	// Load the scene.
 	//lResult = LoadScene(lSdkManager, fileScene, lFilePath.Buffer());
 	lResult = lImporter->Initialize(lFilePath, -1, lSdkManager->GetIOSettings());
@@ -77,8 +102,6 @@ int main(int argc, char** argv)
 	ios->SetBoolProp(IMP_FBX_ANIMATION, true);
 	ios->SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, true);
 	lResult = lImporter->Import(fileScene);
-
-
 
 	//	===== Data collection ==================================================
 	//	This is where all the data from the FBX scene is collected.
@@ -110,7 +133,8 @@ int main(int argc, char** argv)
 	{
 		for (int i = 0; i < elementCount; i++)
 		{
-			PrintContent(sceneRootNode->GetChild(i), groups, meshData, materials, dirLights, pointLight, false, -1);
+			PrintContent(sceneRootNode->GetChild(i), groups, meshData, materials, dirLights, pointLight,
+				false, -1, writeGroups, writeMeshes, writeMaterials, writeSkeletons, writeAnimations, writeLights);
 		}
 	}
 	//	===== Parse data ==================================================
@@ -240,11 +264,11 @@ int main(int argc, char** argv)
 	// Everything noted as *Binary data is what is going to be written to the binary file later on. Everything else are comments or debug information.
 	//	========================================================================
 	ofstream asciiFile2;
-	asciiFile2.open(ASCII_FILE);	// This is where out the filepath should be added comming in from the CMD
+	asciiFile2.open(outputPath + ".txt");	// This is where out the filepath should be added comming in from the CMD
 	asciiFile2 << fixed << setprecision(10) ;
 
 	// - 1 File header
-	std::cout << "Writing header..." << std::endl;
+	std::cout << "Writing ascii header..." << std::endl;
 	asciiFile2 << "//v File Header --------------------" << endl;
 	asciiFile2 << "    Mesh count" << endl;
 	asciiFile2 << fileHeader.meshCount << endl;					//* Binary data
@@ -258,10 +282,11 @@ int main(int argc, char** argv)
 	asciiFile2 << fileHeader.dirLightCount << endl;				//* Binary data
 	asciiFile2 << "//^ File Header --------------------" << endl << endl;
 
-	std::cout << "Writing groups..." << std::endl;
 	// - 2 Groups
 	for (int i = 0; i < fileHeader.groupCount; i++)
 	{
+		std::cout << "Writing ascii group" << i << "..." << std::endl;
+
 		asciiFile2 << "//v Group " << i << " --------------------" << endl << endl;
 
 		// 2.1 Group name
@@ -294,9 +319,10 @@ int main(int argc, char** argv)
 	}
 
 	// - 3 Meshes
-	std::cout << "Writing meshes..." << std::endl;
 	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
+		std::cout << "Writing ascii mesh" << i << "..." << std::endl;
+
 		asciiFile2 << "//v Mesh " << i << " Header " << " --------------------" << endl;
 
 		// 3.1 Mesh name
@@ -441,9 +467,10 @@ int main(int argc, char** argv)
 	}
 
 	// - 5 Materials
-	std::cout << "Writing materials..." << std::endl;
 	for (int i = 0; i < fileHeader.materialCount; i++)
 	{
+		std::cout << "Writing ascii material" << i << "..." << std::endl;
+
 		asciiFile2 << "// Material " << i << " --------------------" << endl;
 
 		// 5.1 Material name
@@ -485,7 +512,6 @@ int main(int argc, char** argv)
 		asciiFile2 << dirLights[i].color[0]		<< ", " << dirLights[i].color[1]	<< ", " << dirLights[i].color[2] << endl;
 
 	}
-
 	for (int i = 0; i < fileHeader.pointLightCount; i++)
 	{
 		asciiFile2 << "// Point Light " << i << " --------------------" << endl;
@@ -509,8 +535,8 @@ int main(int argc, char** argv)
 	// it's relevant type when read (ex int, float, etc). It's up to the reader to know how it was formated
 	// and format it in the same way upon reading.
 	//	========================================================================
-	std::cout << "Writing header..." << std::endl;
-	ofstream binaryFile(BINARY_FILE, ofstream::binary);	// This is where out the filepath should be added comming in from the CMD
+	std::cout << "Writing binary header..." << std::endl;
+	ofstream binaryFile(outputPath + ".meh", ofstream::binary);	// This is where out the filepath should be added comming in from the CMD
 	// - 1 File Header
 	binaryFile.write((char*)&fileHeader, sizeof(MehHeader));
 	// - 2 Groups
@@ -520,9 +546,9 @@ int main(int argc, char** argv)
 		binaryFile.write((char*)&groups[i], sizeof(Group));
 	}
 	// - 3 Meshes
-	std::cout << "Writing meshes..." << std::endl;
 	for (int i = 0; i < fileHeader.meshCount; i++)
 	{
+		std::cout << "Writing binary mesh" << i << "..." << std::endl;
 		// 3.1 Mesh header
 		binaryFile.write((char*)&meshes[i], sizeof(Mesh));
 
@@ -563,6 +589,7 @@ int main(int argc, char** argv)
 	// - 4 Materials
 	for (int i = 0; i < fileHeader.materialCount; i++)
 	{
+		std::cout << "Writing material" << i << "..." << std::endl;
 		binaryFile.write((char*)&materials[i], sizeof(PhongMaterial));
 	}
 
@@ -593,15 +620,16 @@ int main(int argc, char** argv)
 /*========================================================================================================================
 	PrintContent recursively prints all information in a node (and its children), determined by the type of the node.
 ========================================================================================================================*/
-void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& meshes, vector<PhongMaterial>& mats, vector<DirLight>& dirLight, vector<PointLight>& pointLight, bool isChild, int parentType)
+void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& meshes, vector<PhongMaterial>& mats, vector<DirLight>& dirLight, vector<PointLight>& pointLight,
+	bool isChild, int parentType, bool wg, bool wme, bool wma, bool ws, bool wa, bool wl)
 {
 	// This will check what type this node is
 	// All the cases represent the different types
 	FbxNodeAttribute::EType lAttributeType;
 
-	FbxVector4 translation = pNode->EvaluateLocalTranslation();
-	FbxVector4 rotation = pNode->EvaluateLocalRotation();
-	FbxVector4 scale = pNode->EvaluateLocalScaling();
+	FbxVector4 translation	= pNode->EvaluateLocalTranslation();
+	FbxVector4 rotation		= pNode->EvaluateLocalRotation();
+	FbxVector4 scale		= pNode->EvaluateLocalScaling();
 
 	int nameLength = (int)strlen(pNode->GetName());
 	string nameBuffer = pNode->GetName();
@@ -623,6 +651,8 @@ void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& mes
 			break;
 
 		case FbxNodeAttribute::eNull:
+			if (wg)
+			{
 			// This is probably a group
 			Group fillGroup;
 			// Applies the mesh name
@@ -648,39 +678,42 @@ void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& mes
 			
 			parentType = 0;
 			groups.push_back(fillGroup);
+			}
 			break;
 
 		case FbxNodeAttribute::eMesh:
-			// This applies the relevant type (1 = mesh) and adds
-			// The relevant transformation data
-			fillMesh.translation[0] = (float)translation[0];
-			fillMesh.translation[1] = (float)translation[1];
-			fillMesh.translation[2] = (float)translation[2];
-			fillMesh.rotation[0] = (float)rotation[0];
-			fillMesh.rotation[1] = (float)rotation[1];
-			fillMesh.rotation[2] = (float)rotation[2];
-			fillMesh.scale[0] = (float)scale[0];
-			fillMesh.scale[1] = (float)scale[1];
-			fillMesh.scale[2] = (float)scale[2];
-			GetMesh(pNode, &fillMesh, mats);
-			fillMesh.isChild = isChild;
-			for (int j = 0; j < pNameLength; j++)
-				fillMesh.parentName[j] = pNameBuffer[j];
-			fillMesh.parentName[pNameLength] = '\0';
-			// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
+			if (wme)
+			{
+				// This applies the relevant type (1 = mesh) and adds
+				// The relevant transformation data
+				fillMesh.translation[0] = (float)translation[0];
+				fillMesh.translation[1] = (float)translation[1];
+				fillMesh.translation[2] = (float)translation[2];
+				fillMesh.rotation[0] = (float)rotation[0];
+				fillMesh.rotation[1] = (float)rotation[1];
+				fillMesh.rotation[2] = (float)rotation[2];
+				fillMesh.scale[0] = (float)scale[0];
+				fillMesh.scale[1] = (float)scale[1];
+				fillMesh.scale[2] = (float)scale[2];
+				GetMesh(pNode, &fillMesh, mats);
+				fillMesh.isChild = isChild;
+				for (int j = 0; j < pNameLength; j++)
+					fillMesh.parentName[j] = pNameBuffer[j];
+				fillMesh.parentName[pNameLength] = '\0';
+				// Puts a \0 at the end of the mesh name, still printing out whitespace into the binary file
 
-			fillMesh.parentType = parentType;
+				fillMesh.parentType = parentType;
 
-			parentType = 1;
-			meshes.push_back(fillMesh);
+				parentType = 1;
+				meshes.push_back(fillMesh);
+			}
 			break;
 
-
 		case FbxNodeAttribute::eLight:
-
-			DirLight fillDirLight;
-			PointLight fillPointLight;
+			if (wl)
 			{
+				DirLight fillDirLight;
+				PointLight fillPointLight;			
 				int type = PrintLight(pNode, &fillDirLight, &fillPointLight);
 				if (type == 1)
 				{
@@ -709,7 +742,7 @@ void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& mes
 	// Loops through all the children of this node
 	for (int i = 0; i < pNode->GetChildCount(); i++)
 	{
-		PrintContent(pNode->GetChild(i), groups, meshes, mats, dirLight, pointLight, true, parentType);
+		PrintContent(pNode->GetChild(i), groups, meshes, mats, dirLight, pointLight, true, parentType, wg, wme, wma, ws, wa, wl);
 		//PrintContent(pNode->GetChild(i), &fillMesh, &fillDirLight, &fillSpotLight, mats);
 	}
 }

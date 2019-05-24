@@ -23,7 +23,6 @@
 	Filehandling will be handled with the command prompt later
 =================================================================================*/
 
-
 #include "DisplayCommon.h"
 
 #include <fbxsdk.h>
@@ -33,13 +32,11 @@
 #include <iomanip>
 #include <fstream>
 
-
 using namespace std;
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/animmat.fbx";
-const std::string ASCII_FILE = "Exported_Files/AniTest.txt";
-const std::string BINARY_FILE = "Exported_Files/AniTest.meh";
+const std::string IN_FBX_FILEPATH = "FBX_Files/Level[Toybox].fbx";
+const std::string OUTPUT_PATH = "Exported_Files/Level[Toybox]";
 
 // File header
 struct MehHeader
