@@ -123,6 +123,7 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 						string finalAlbedo = "Resources/Textures/";
 						finalAlbedo += fileNameEd;
 
+
 						//Send string to struct
 						for (int j = 0; j < strlen(finalAlbedo.c_str()); j++)
 						{
@@ -153,6 +154,7 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 						string fileNameEd = fileName.substr(pivotPos + 1, strlen(fileName.c_str()));
 						string finalNormal = "Resources/Textures/";
 						finalNormal += fileNameEd;
+
 
 						//Send string to struct
 						for (int j = 0; j < strlen(finalNormal.c_str()); j++)

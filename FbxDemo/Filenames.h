@@ -32,14 +32,15 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <Windows.h>
 
 
 using namespace std;
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/animmat.fbx";
-const std::string ASCII_FILE = "Exported_Files/AniTest.txt";
-const std::string BINARY_FILE = "Exported_Files/AniTest.meh";
+const std::string IN_FBX_FILEPATH = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/WIP/FBX/Level[PadsNWalls].fbx";
+const std::string ASCII_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/ASCII/Level[PadsNWalls]ASCII.txt";
+const std::string BINARY_FILE = "C:/Users/BTH/Desktop/ProjectFolder/Project-Kiddo/Resources/Assets/GameReady/Rooms/Level[PadsNWalls].meh";
 
 // File header
 struct MehHeader
