@@ -36,8 +36,8 @@
 using namespace std;
 #define NAME_SIZE 256
 
-const std::string IN_FBX_FILEPATH = "FBX_Files/Level[Toybox].fbx";
-const std::string OUTPUT_PATH = "Exported_Files/Level[Toybox]";
+const std::string IN_FBX_FILEPATH = "FBX_Files/Level[BoxConundrum].fbx";
+const std::string OUTPUT_PATH = "Exported_Files/Level[BoxConundrum]";
 
 // File header
 struct MehHeader
