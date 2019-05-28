@@ -13,6 +13,8 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 	int materialCount = 0;
 	FbxNode* materialNode = NULL;
 
+	string texturePath = "Resources/Textures/";
+
 	PhongMaterial *materials = nullptr;
 
 	if (pGeometry) 
@@ -121,14 +123,6 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 						}
 						string fileNameEd = fileName.substr(pivotPos+1, strlen(fileName.c_str()));
 
-						for (int index = 0; index < strlen(fileNameEd.c_str()); index++)
-						{
-							char temp = fileNameEd[index];
-							if (temp == '.')
-								pivotPos = index;
-						}
-						string fileAffix = fileNameEd.substr(pivotPos, strlen(fileName.c_str()));
-
 						string finalAlbedo = OUTPUT_PATH + '_' + fileNameEd;
 						//finalAlbedo += fileNameEd;
 						std::ifstream in(fileName, ios_base::in | ios_base::binary);
@@ -152,11 +146,12 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 						in.close();
 						out.close();
 
+						fileNameEd = texturePath + fileNameEd;
 						//Send string to struct
 						for (int j = 0; j < strlen(finalAlbedo.c_str()); j++)
 						{
-							materials[matIndex].albedo[j] = finalAlbedo[j];
-							materials[matIndex].albedo[strlen(finalAlbedo.c_str())] = '\0';
+							materials[matIndex].albedo[j] = fileNameEd[j];
+							materials[matIndex].albedo[strlen(fileNameEd.c_str())] = '\0';
 						}
 						
 					} 
@@ -204,11 +199,12 @@ void PrintMaterial(FbxGeometry* pGeometry, vector<PhongMaterial>& mats, MeshHold
 						in.close();
 						out.close();
 
+						fileNameEd = texturePath + fileNameEd;
 						//Send string to struct
 						for (int j = 0; j < strlen(finalNormal.c_str()); j++)
 						{
-							materials[matIndex].normal[j] = finalNormal[j];
-							materials[matIndex].normal[strlen(finalNormal.c_str())] = '\0';
+							materials[matIndex].normal[j] = fileNameEd[j];
+							materials[matIndex].normal[strlen(fileNameEd.c_str())] = '\0';
 						}
 
 					}
