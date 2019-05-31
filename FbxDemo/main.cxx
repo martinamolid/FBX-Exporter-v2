@@ -86,14 +86,24 @@ int main(int argc, char** argv)
 
 		if ((string)argv[i] == "-i")
 			lFilePath = argv[i + 1];
-
 		if ((string)argv[i] == "-o")
 			outputPath = argv[i + 1];
+
+		if ((string)argv[i] == "-h")
+		{
+			std::cout << "Commandline parameters: " << std::endl << std::endl;
+			std::cout << "-nogroups		| excludes groups from the export" << std::endl << std::endl;
+			std::cout << "-nomeshes		| excludes meshes from the export" << std::endl << std::endl;
+			std::cout << "-nomaterials		| excludes materials from the export" << std::endl << std::endl;
+			std::cout << "-noskeleton		| excludes skeletons from the export" << std::endl << std::endl;
+			std::cout << "-noanimation		| excludes animations from the export" << std::endl << std::endl;
+			std::cout << "-nolights		| excludes lights from the export" << std::endl << std::endl;
+		}
 	}
 
 	// Load the scene.
 	lResult = lImporter->Initialize(lFilePath, -1, lSdkManager->GetIOSettings());
-	if (lResult)
+	if (lResult || lFilePath == "" || outputPath == "")
 	{
 		ios->SetBoolProp(IMP_FBX_MATERIAL, true);
 		ios->SetBoolProp(IMP_FBX_TEXTURE, true);
