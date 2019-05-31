@@ -365,8 +365,11 @@ void GetSkin(FbxMesh* fbxMesh, FbxGeometry* fbxGeo, MeshHolder* mesh)
 		FbxAMatrix associateModelTransform;
 		cluster->GetTransformAssociateModelMatrix(associateModelTransform);
 
+		FbxAMatrix parentTransform;
+		cluster->GetTransformParentMatrix(associateModelTransform);
 
-		FbxAMatrix invGlobalBindPose = globalBindPoseTransform.Inverse() * meshGlobalTransform * geometryTransform * associateModelTransform;
+		FbxAMatrix invGlobalBindPose = globalBindPoseTransform.Inverse() * meshGlobalTransform * geometryTransform * associateModelTransform * parentTransform;
+		//FbxAMatrix invGlobalBindPose = globalBindPoseTransform.Inverse() * meshGlobalTransform * geometryTransform * associateModelTransform;
 		skeleton.joints[jointIndex].invBindPose = invGlobalBindPose;
 
 		for (int t = startFrame - 1; t <= (int)endFrame - 1; t++)
