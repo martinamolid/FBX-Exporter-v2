@@ -36,6 +36,7 @@
 using namespace std;
 #define NAME_SIZE 256
 
+// These needs to be empty in the final build, try to empty them for every push
 const std::string IN_FBX_FILEPATH	= "";
 const std::string OUTPUT_PATH		= "";
 
