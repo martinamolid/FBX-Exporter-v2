@@ -34,7 +34,7 @@ using namespace std;
 #pragma comment(lib,"zlib-mt.lib")
 
 // Local function prototypes.
-void PrintContent(FbxNode* pNode, vector<Group>& fillGroup, vector<MeshHolder>& mesh, vector<PhongMaterial>& mats, vector<DirLight>& dirLight, vector<PointLight>& pointLight,
+void PrintContent(FbxNode* pNode, vector<Group>& fillGroup, vector<MeshHolder>& mesh, vector<PhongMaterial>& mats, vector<DirLight>& dirLight, vector<PointLight>& pointLight, vector<Camera>& camera,
 	bool isChild, int parentType, bool wg, bool wme, bool wma, bool ws, bool wa, bool wl);
 void DisplayPivotsAndLimits(FbxNode* pNode);
 
@@ -98,6 +98,8 @@ int main(int argc, char** argv)
 			std::cout << "-noskeleton		| excludes skeletons from the export" << std::endl << std::endl;
 			std::cout << "-noanimation		| excludes animations from the export" << std::endl << std::endl;
 			std::cout << "-nolights		| excludes lights from the export" << std::endl << std::endl;
+			std::cout << "-i		| input filepath" << std::endl << std::endl;
+			std::cout << "-o		| output filepath" << std::endl << std::endl;
 		}
 	}
 
@@ -113,6 +115,11 @@ int main(int argc, char** argv)
 		ios->SetBoolProp(IMP_FBX_ANIMATION, true);
 		ios->SetBoolProp(IMP_FBX_GLOBAL_SETTINGS, true);
 		lResult = lImporter->Import(fileScene);
+
+
+
+
+
 
 		
 		//	===== Data collection ==================================================
@@ -136,24 +143,33 @@ int main(int argc, char** argv)
 		vector<PhongMaterial> materials;
 		vector<DirLight> dirLights;
 		vector<PointLight> pointLight;
+		vector<Camera> cameras;
 
 		vector<MeshSkeleton> skeleD;
 		vector<MeshAnis> anisD;
 
-		// Gather the data
+
+		// ===== Gather the data =====
 		if (sceneRootNode)
 		{
 			for (int i = 0; i < elementCount; i++)
 			{
-				PrintContent(sceneRootNode->GetChild(i), groups, meshData, materials, dirLights, pointLight,
+				PrintContent(sceneRootNode->GetChild(i), groups, meshData, materials, dirLights, pointLight, cameras,
 					false, -1, writeGroups, writeMeshes, writeMaterials, writeSkeletons, writeAnimations, writeLights);
 			}
 		}
+
+
+
+
+
+
+
+
 		//	===== Parse data ==================================================
 		//	This section will parse and data that isn't yet fully loaded in for 
 		//	the writing of the custom file
 		//	===================================================================
-
 		// ==== Header ====
 		fileHeader.meshCount		= (int)meshData.size();
 		fileHeader.groupCount		= (int)groups.size();;
@@ -265,6 +281,11 @@ int main(int argc, char** argv)
 
 			meshes.push_back(fillMesh);
 		}
+
+
+
+
+
 
 
 
@@ -539,7 +560,14 @@ int main(int argc, char** argv)
 		}
 		asciiFile2.close();
 		std::cout << "Ascii done!" << std::endl;
-	
+		
+
+
+
+
+
+
+
 		std::cout << "Writing to binary..." << std::endl;
 		// ===== Binary file file ==================================================
 		// This is used to directly write binary data to the file
@@ -635,10 +663,18 @@ int main(int argc, char** argv)
     return 0;
 }
 
+
+
+
+
+
+
+
+
 /*========================================================================================================================
 	PrintContent recursively prints all information in a node (and its children), determined by the type of the node.
 ========================================================================================================================*/
-void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& meshes, vector<PhongMaterial>& mats, vector<DirLight>& dirLight, vector<PointLight>& pointLight,
+void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& meshes, vector<PhongMaterial>& mats, vector<DirLight>& dirLight, vector<PointLight>& pointLight, vector<Camera>& camera,
 	bool isChild, int parentType, bool wg, bool wme, bool wma, bool ws, bool wa, bool wl)
 {
 	// This will check what type this node is
@@ -696,6 +732,27 @@ void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& mes
 			
 			parentType = 0;
 			groups.push_back(fillGroup);
+			}
+			break;
+
+		case FbxNodeAttribute::eCamera:
+			{
+				// This is probably a group
+				Camera fillCamera;
+				// Applies the mesh name
+				for (int j = 0; j < nameLength; j++)
+					fillCamera.name[j] = nameBuffer[j];
+				fillCamera.name[nameLength] = '\0';
+
+				fillCamera.translation[0] = (float)translation[0];
+				fillCamera.translation[1] = (float)translation[1];
+				fillCamera.translation[2] = (float)translation[2];
+				fillCamera.rotation[0] = (float)rotation[0];
+				fillCamera.rotation[1] = (float)rotation[1];
+				fillCamera.rotation[2] = (float)rotation[2];
+
+				parentType = 0;
+				camera.push_back(fillCamera);
 			}
 			break;
 
@@ -760,7 +817,7 @@ void PrintContent(FbxNode* pNode, vector<Group>& groups, vector<MeshHolder>& mes
 	// Loops through all the children of this node
 	for (int i = 0; i < pNode->GetChildCount(); i++)
 	{
-		PrintContent(pNode->GetChild(i), groups, meshes, mats, dirLight, pointLight, true, parentType, wg, wme, wma, ws, wa, wl);
+		PrintContent(pNode->GetChild(i), groups, meshes, mats, dirLight, pointLight, camera, true, parentType, wg, wme, wma, ws, wa, wl);
 		//PrintContent(pNode->GetChild(i), &fillMesh, &fillDirLight, &fillSpotLight, mats);
 	}
 }

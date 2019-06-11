@@ -37,8 +37,8 @@ using namespace std;
 #define NAME_SIZE 256
 
 // These needs to be empty in the final build, try to empty them for every push
-const std::string IN_FBX_FILEPATH	= "";
-const std::string OUTPUT_PATH		= "";
+const std::string IN_FBX_FILEPATH	= "D:/cameraTest.fbx";
+const std::string OUTPUT_PATH		= "D:/cameratesst";
 
 // File header
 struct MehHeader
@@ -62,6 +62,15 @@ struct Group	// Type 0;
 	bool	isChild;
 	char	parentName[256];
 	int		parentType;
+};
+
+struct Camera
+{
+	char	name[NAME_SIZE];
+
+	float	translation[3];
+	float	rotation[3];
+
 };
 
 
